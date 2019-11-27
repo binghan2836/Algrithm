@@ -1,3 +1,12 @@
+#For vscode
+.vscode/
+
+#for cmake
+out/
+
+#for version control
+includes/config.h
+
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
