@@ -4,7 +4,7 @@
  * Created Date: Wednesday November 27th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Wednesday November 27th 2019 2:14:26 pm
+ * Last Modified: Wednesday November 27th 2019 1:45:39 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -40,8 +40,6 @@
 #include "RandomGenerator.h"
 #include "InsertSort.h"
 
-template<class Type>
-void InsertSort(Type &data);
 
 TEST(InsertSortTest,normal)
 {
@@ -52,5 +50,12 @@ TEST(InsertSortTest,normal)
         data.push_back(GetRandomValue(IntegerRandom,0,100));
     }
 
-    InsertSort(data);
+    InsertSortDesc(data,data.size());
+
+    for(int val:data)
+    {
+        std::cout << val << "  ";
+    }
+
+    std::cout << std::endl;
 }

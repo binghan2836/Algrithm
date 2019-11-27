@@ -4,7 +4,7 @@
  * Created Date: Wednesday November 27th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Wednesday November 27th 2019 2:19:54 pm
+ * Last Modified: Wednesday November 27th 2019 2:18:55 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -35,12 +35,41 @@
  */
 
 template<class Type>
-void InsertSort(Type &data)
+inline bool Max(const Type &left,const Type &right)
 {
-    typename Type::iterator it = data.begin();
-
-    for(;it != data.end();++it)
+    return left >right;
+}
+template<class Type,class Fun>
+void InsertSort(Type &data, size_t len)
+{
+    if(len <= 1)
     {
-        std::cout << " " << *it << " ";
+        return;
     }
+
+    for(size_t index = 1; index < len; index ++)
+    {
+        size_t current = index -1;
+        auto key = data[index];
+
+
+        for(size_t loop = 0; (loop < index) && (Fun(key,data[current]));loop++)//data[current] < key
+        {
+            data[current + 1] = data[current];
+            current --;
+        }
+        data[current + 1] = key;
+    }
+}
+
+template<class Type>
+void InsertSortDesc(Type &data, size_t len)
+{
+    InsertSort<Type,Max>(data,len);
+}
+
+template<class Type>
+void InsertSortAsc(Type &data)
+{
+    
 }
