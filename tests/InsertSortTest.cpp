@@ -40,22 +40,30 @@
 #include "RandomGenerator.h"
 #include "InsertSort.h"
 
-
-TEST(InsertSortTest,normal)
+TEST(InsertSortTest,Desc)
 {
     std::vector<int> data;
     
-    for(int i = 0;i < 20; i++)
+    for(int i = 0;i < 40; i++)
     {
-        data.push_back(GetRandomValue(IntegerRandom,0,100));
+        data.push_back(GetRandomValue(OutputIntegerRandom(),0,100));
     }
 
     InsertSortDesc(data,data.size());
 
-    for(int val:data)
+    EXPECT_EQ(true,VaildateDesc(data));
+}
+
+TEST(InsertSortTest,Asc)
+{
+    std::vector<int> data;
+    
+    for(int i = 0;i < 40; i++)
     {
-        std::cout << val << "  ";
+        data.push_back(GetRandomValue(OutputIntegerRandom(),0,100));
     }
 
-    std::cout << std::endl;
+    InsertSortAsc(data,data.size());
+
+    EXPECT_EQ(true,VaildateAsc(data));
 }

@@ -4,7 +4,7 @@
  * Created Date: Wednesday November 27th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Wednesday November 27th 2019 2:13:06 pm
+ * Last Modified: Wednesday November 27th 2019 2:04:45 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -33,14 +33,14 @@
  * Date          By    Comments
  * ----------    ---    ----------------------------------------------------------
  */
-#ifndef __UTILITIES_RANDOM_GENEROTOR__
-#define __UTILITIES_RANDOM_GENEROTOR__
+#ifndef FUTURE_STREAM_RANDOM_GENERATOR_H
+#define FUTURE_STREAM_RANDOM_GENERATOR_H
 
 #include <random>
 
-struct OutputIntegerRandom {} IntegerRandom;
-struct OutputDoubleRandom {} DoubleRandom;
-struct OutputFloatRandom {} FloatRandom;
+struct OutputIntegerRandom {};
+struct OutputDoubleRandom {};
+struct OutputFloatRandom {};
 
 
 template <class type>
@@ -141,4 +141,4 @@ GetRandomValue(Ty type, typename InnerRandomDevice<Ty>::ParmType from,
 }
 
 
-#endif // !__UTILITIES_RANDOM_GENEROTOR__
+#endif // !FUTURE_STREAM_RANDOM_GENERATOR_H

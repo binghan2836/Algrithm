@@ -33,14 +33,12 @@
  * Date          By    Comments
  * ----------    ---    ----------------------------------------------------------
  */
+#ifndef FUTURE_STREAM_INSERT_SORT_H
+#define FUTURE_STREAM_INSERT_SORT_H
+#include "SortUtility.h"
 
-template<class Type>
-inline bool Max(const Type &left,const Type &right)
-{
-    return left >right;
-}
-template<class Type,class Fun>
-void InsertSort(Type &data, size_t len)
+template<class Type,class Comp>
+void InsertSort(Type &data, const size_t len, Comp comp)
 {
     if(len <= 1)
     {
@@ -53,7 +51,7 @@ void InsertSort(Type &data, size_t len)
         auto key = data[index];
 
 
-        for(size_t loop = 0; (loop < index) && (Fun(key,data[current]));loop++)//data[current] < key
+        for(size_t loop = 0; (loop < index) && (comp(key,data[current]));loop++)//data[current] < key
         {
             data[current + 1] = data[current];
             current --;
@@ -63,13 +61,15 @@ void InsertSort(Type &data, size_t len)
 }
 
 template<class Type>
-void InsertSortDesc(Type &data, size_t len)
+inline void InsertSortDesc(Type &data, const size_t len)
 {
-    InsertSort<Type,Max>(data,len);
+    InsertSort(data,len,DescComp());
 }
 
 template<class Type>
-void InsertSortAsc(Type &data)
+inline void InsertSortAsc(Type &data, const size_t len)
 {
-    
+    InsertSort(data,len,AscComp());
 }
+
+#endif
