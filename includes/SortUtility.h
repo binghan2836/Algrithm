@@ -1,10 +1,10 @@
 /*
- * File: InsertSortTest.cpp
+ * File: SortUtlis.h
  * Project: future stream
- * Created Date: Wednesday November 27th 2019
+ * Created Date: Thursday November 28th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Wednesday November 27th 2019 1:45:39 pm
+ * Last Modified: Friday November 29th 2019 10:05:57 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -33,52 +33,52 @@
  * Date          By    Comments
  * ----------    ---    ----------------------------------------------------------
  */
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-
-#include <vector>
-#include "RandomGenerator.h"
-#include "InsertSort.h"
-
-TEST(InsertSortTest,DescForRandomContiner)
+#ifndef FUTURE_STREAM_ALGORITHM_SORT_UTILITY_H
+#define FUTURE_STREAM_ALGORITHM_SORT_UTILITY_H
+struct DescComp
 {
-    std::vector<int> data;
-    
-    for(int i = 0;i < 40; i++)
+    template<class Type>
+    inline bool operator()(const Type &left,const Type &right)
     {
-        data.push_back(GetRandomValue(OutputIntegerRandom(),0,100));
+        return left >right;
+    }
+};
+
+struct AscComp
+{
+    template<class Type>
+    inline bool operator()(const Type &left,const Type &right)
+    {
+        return left < right;
     }
 
-    InsertSortDesc(data,data.size());
+};
 
-    EXPECT_EQ(true,VaildateDesc(data,data.size()));
-}
 
-TEST(InsertSortTest,DescForArray)
+template <class Data>
+bool VaildateDesc(Data &data,size_t len)
 {
-    #define MERGE_SORT_TEST_DESC_ARRAY_LEN  50
-    int data[MERGE_SORT_TEST_DESC_ARRAY_LEN];
-    
-    for(int i = 0;i < MERGE_SORT_TEST_DESC_ARRAY_LEN; i++)
+    for(size_t i=1; i < len;i++)
     {
-        data[i] = GetRandomValue(OutputIntegerRandom(),0,100);
+        if(data[i] > data[i-1])
+        {
+            return false;
+        }
     }
-
-    InsertSortDesc(data,static_cast<size_t>(MERGE_SORT_TEST_DESC_ARRAY_LEN));
-
-    EXPECT_EQ(true,VaildateDesc(data,MERGE_SORT_TEST_DESC_ARRAY_LEN));
+    return true;
 }
 
-TEST(InsertSortTest,Asc)
+template <class Data>
+bool VaildateAsc(Data &data,size_t len)
 {
-    std::vector<int> data;
-    
-    for(int i = 0;i < 40; i++)
+    for(size_t i=1; i < len;i++)
     {
-        data.push_back(GetRandomValue(OutputIntegerRandom(),0,100));
+        if(data[i] < data[i-1])
+        {
+            return false;
+        }
     }
-
-    InsertSortAsc(data,data.size());
-
-    EXPECT_EQ(true,VaildateAsc(data,data.size()));
+    return true;
 }
+
+#endif

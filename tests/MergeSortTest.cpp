@@ -1,10 +1,10 @@
 /*
- * File: InsertSortTest.cpp
+ * File: MergeSortTest.cpp
  * Project: future stream
- * Created Date: Wednesday November 27th 2019
+ * Created Date: Thursday November 28th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Wednesday November 27th 2019 1:45:39 pm
+ * Last Modified: Friday November 29th 2019 10:05:57 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -38,25 +38,28 @@
 
 #include <vector>
 #include "RandomGenerator.h"
-#include "InsertSort.h"
+#include "MergeSort.h"
+using namespace std;
 
-TEST(InsertSortTest,DescForRandomContiner)
+#define MERGE_SORT_TEST_DESC_ARRAY_LEN  50
+
+TEST(MergeSortTest,DescForRandomItertor)
 {
     std::vector<int> data;
     
-    for(int i = 0;i < 40; i++)
+    for(int i = 0;i < 50; i++)
     {
         data.push_back(GetRandomValue(OutputIntegerRandom(),0,100));
     }
 
-    InsertSortDesc(data,data.size());
+    MergeSortDesc(data,data.size());
 
     EXPECT_EQ(true,VaildateDesc(data,data.size()));
 }
 
-TEST(InsertSortTest,DescForArray)
+TEST(MergeSortTest,DescForArray)
 {
-    #define MERGE_SORT_TEST_DESC_ARRAY_LEN  50
+    
     int data[MERGE_SORT_TEST_DESC_ARRAY_LEN];
     
     for(int i = 0;i < MERGE_SORT_TEST_DESC_ARRAY_LEN; i++)
@@ -64,21 +67,35 @@ TEST(InsertSortTest,DescForArray)
         data[i] = GetRandomValue(OutputIntegerRandom(),0,100);
     }
 
-    InsertSortDesc(data,static_cast<size_t>(MERGE_SORT_TEST_DESC_ARRAY_LEN));
+    MergeSortDesc(data,static_cast<size_t>(MERGE_SORT_TEST_DESC_ARRAY_LEN));
 
     EXPECT_EQ(true,VaildateDesc(data,MERGE_SORT_TEST_DESC_ARRAY_LEN));
 }
 
-TEST(InsertSortTest,Asc)
+TEST(MergeSortTest,ForRandomItertor)
 {
     std::vector<int> data;
     
-    for(int i = 0;i < 40; i++)
+    for(int i = 0;i < 50; i++)
     {
-        data.push_back(GetRandomValue(OutputIntegerRandom(),0,100));
+        data.push_back(GetRandomValue(OutputIntegerRandom()));
     }
 
-    InsertSortAsc(data,data.size());
+    MergeSortAsc(data,data.size());
 
     EXPECT_EQ(true,VaildateAsc(data,data.size()));
+}
+
+TEST(MergeSortTest,ForArray)
+{
+    int data[MERGE_SORT_TEST_DESC_ARRAY_LEN];
+    
+    for(int i = 0;i < MERGE_SORT_TEST_DESC_ARRAY_LEN; i++)
+    {
+        data[i] = GetRandomValue(OutputIntegerRandom(),0,100);
+    }
+
+    MergeSortAsc(data,MERGE_SORT_TEST_DESC_ARRAY_LEN);
+
+    EXPECT_EQ(true,VaildateAsc(data,MERGE_SORT_TEST_DESC_ARRAY_LEN));
 }
