@@ -37,10 +37,7 @@
 #define FUTURE_STREAM_MERGE_SORT_H
 #include "SortUtility.h"
 #include <vector>
-<<<<<<< HEAD
 #include <algorithm> 
-=======
->>>>>>> 0b26b8a8014102319373f47cb0375dbcff4c3a35
 /*
                      |7|4|5|6|8|5|
 
