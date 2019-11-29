@@ -4,7 +4,11 @@
  * Created Date: Thursday November 28th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Friday November 29th 2019 10:05:57 am
+<<<<<<< HEAD
+ * Last Modified: Friday November 29th 2019 1:40:26 pm
+=======
+ * Last Modified: Friday November 29th 2019 1:40:26 pm
+>>>>>>> 0b26b8a8014102319373f47cb0375dbcff4c3a35
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -80,5 +84,4 @@ bool VaildateAsc(Data &data,size_t len)
     }
     return true;
 }
-
 #endif

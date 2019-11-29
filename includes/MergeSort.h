@@ -4,7 +4,7 @@
  * Created Date: Thursday November 28th 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Friday November 29th 2019 10:05:57 am
+ * Last Modified: Friday November 29th 2019 1:40:26 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -37,7 +37,10 @@
 #define FUTURE_STREAM_MERGE_SORT_H
 #include "SortUtility.h"
 #include <vector>
+<<<<<<< HEAD
 #include <algorithm> 
+=======
+>>>>>>> 0b26b8a8014102319373f47cb0375dbcff4c3a35
 /*
                      |7|4|5|6|8|5|
 
