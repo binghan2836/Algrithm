@@ -1,10 +1,10 @@
 /*
- * File: SortUtlis.h
+ * File: FloodProblemTest.cpp
  * Project: future stream
- * Created Date: Thursday November 28th 2019
+ * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Sunday December 1st 2019 8:14:06 am
+ * Last Modified: Sunday December 1st 2019 6:05:27 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -33,51 +33,53 @@
  * Date          By    Comments
  * ----------    ---    ----------------------------------------------------------
  */
-#ifndef FUTURE_STREAM_ALGORITHM_SORT_UTILITY_H
-#define FUTURE_STREAM_ALGORITHM_SORT_UTILITY_H
-struct DescComp
+
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+
+#include <vector>
+#include "RandomGenerator.h"
+#include "FloodProblem.h"
+
+TEST(FloodProblemTest,TwoDimensinalObjArray)
 {
-    template<class Type>
-    inline bool operator()(const Type &left,const Type &right)
+    int matrix[4][4];
+
+    for(int i =0; i < 4; ++i)
     {
-        return left >right;
-    }
-};
-
-struct AscComp
-{
-    template<class Type>
-    inline bool operator()(const Type &left,const Type &right)
-    {
-        return left < right;
-    }
-
-};
-
-
-template <class Data>
-bool VaildateDesc(Data &data,size_t len)
-{
-    for(size_t i=1; i < len;i++)
-    {
-        if(data[i] > data[i-1])
+        for(int j = 0; j < 4; ++j)
         {
-            return false;
+            matrix[i][j] = j;
         }
     }
-    return true;
+
+    auto obj = MakeTwoDimensinalObj(matrix);
+    EXPECT_EQ(obj.GetValue(0,3),3);
+    EXPECT_EQ(obj.GetValue(1,3),3);
+
+    obj.SetValue(0,3,10);
+    obj.Cells()[1][3] = 20;
+
+    EXPECT_EQ(obj.GetValue(0,3),10);
+    EXPECT_EQ(obj.GetValue(1,3),20);
 }
 
-template <class Data>
-bool VaildateAsc(Data &data,size_t len)
+TEST(FloodProblemTest,GetAnchor)
 {
-    for(size_t i=1; i < len;i++)
+    int matrix[4][4];
+
+    for(int i =0; i < 4; ++i)
     {
-        if(data[i] < data[i-1])
+        for(int j = 0; j < 4; ++j)
         {
-            return false;
+            matrix[i][j] = j;
         }
     }
-    return true;
+
+    auto flood = MakeFloodProblemInstance(matrix);
+
+    AnchorObj obj;
+    
+    EXPECT_EQ(flood.GetAnchorObj(obj), true);
 }
-#endif
+

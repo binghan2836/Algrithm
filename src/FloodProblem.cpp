@@ -1,10 +1,10 @@
 /*
- * File: SortUtlis.h
+ * File: FloodProblem.cpp
  * Project: future stream
- * Created Date: Thursday November 28th 2019
+ * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Sunday December 1st 2019 8:14:06 am
+ * Last Modified: Sunday December 1st 2019 8:27:20 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -33,51 +33,5 @@
  * Date          By    Comments
  * ----------    ---    ----------------------------------------------------------
  */
-#ifndef FUTURE_STREAM_ALGORITHM_SORT_UTILITY_H
-#define FUTURE_STREAM_ALGORITHM_SORT_UTILITY_H
-struct DescComp
-{
-    template<class Type>
-    inline bool operator()(const Type &left,const Type &right)
-    {
-        return left >right;
-    }
-};
-
-struct AscComp
-{
-    template<class Type>
-    inline bool operator()(const Type &left,const Type &right)
-    {
-        return left < right;
-    }
-
-};
 
 
-template <class Data>
-bool VaildateDesc(Data &data,size_t len)
-{
-    for(size_t i=1; i < len;i++)
-    {
-        if(data[i] > data[i-1])
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-template <class Data>
-bool VaildateAsc(Data &data,size_t len)
-{
-    for(size_t i=1; i < len;i++)
-    {
-        if(data[i] < data[i-1])
-        {
-            return false;
-        }
-    }
-    return true;
-}
-#endif
