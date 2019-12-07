@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Sunday December 1st 2019 6:16:56 pm
+ * Last Modified: Saturday December 7th 2019 10:51:58 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -80,7 +80,7 @@ public:
         for(size_t i = 0; i < xLen; ++i)
         {
             for(size_t j = 0; j < yLen; ++ j)
-                if(_cells.Cells[i][j] == -1)
+                if(_cells.Cells()[i][j] == -1)
                 {
                     /**
                      * @brief handle anchors
