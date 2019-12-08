@@ -36,14 +36,15 @@
 #ifndef FUTURE_STREAM_FLOOD_PROMBLEM_H
 #define FUTURE_STREAM_FLOOD_PROMBLEM_H
 
+#include <algorithm>
 #include <utility>
 #include <limits>
 
 template <class Type>
-class TwoDimensinalObj;
+class TwoDimenTypeTraits;
 
 template <class Type, const size_t xLen, const size_t yLen>
-class TwoDimensinalObj<Type[xLen][yLen]>
+class TwoDimenTypeTraits<Type[xLen][yLen]>
 {
 public:
     enum
@@ -52,7 +53,8 @@ public:
         YLEN = yLen
     };
     typedef Type DataContinerType[xLen][yLen];
-    TwoDimensinalObj(DataContinerType &data) : _dataContiner(data)
+    typedef Type ItemType;
+    TwoDimenTypeTraits(DataContinerType &data) : _dataContiner(data)
     {
     }
 
@@ -68,9 +70,9 @@ private:
 };
 
 template <class Type>
-TwoDimensinalObj<Type> MakeTwoDimensinalObj(Type &data)
+TwoDimenTypeTraits<Type> MakeTwoDimenTypeTraits(Type &data)
 {
-    return TwoDimensinalObj<Type>(data);
+    return TwoDimenTypeTraits<Type>(data);
 }
 
 class VertexObj
@@ -83,22 +85,59 @@ public:
         NIL = std::numeric_limits<size_t>::max()
     };
 
-private:
     struct _Vertex
     {
-        _Vertex() : pre(NIL), path(NIL), weight(NIL) {}
+        _Vertex() : index(NIL), weight(NIL), pre(NIL), path(NIL) {}
 
+        _Vertex(size_t in, WeightType w, PrecursorType pre, WeightType path) : index(in), weight(w), pre(NIL), path(NIL) {}
+
+        static bool VertexCmp(const _Vertex &rh, const _Vertex &lh)
+        {
+            return rh.path > lh.path;
+        }
+
+        size_t index;
+        WeightType weight;
         PrecursorType pre;
         WeightType path;
-        WeightType weight;
+        std::vector<size_t> edges;
     };
 
-public:
     typedef _Vertex VertexType;
 
-    VertexObj(size_t len)
+    inline VertexObj(size_t len)
     {
-        _vertexObjs.resize(len);
+        _vertexObjs.reserve(len);
+    }
+
+    void Push(VertexType v)
+    {
+        _vertexObjs.push_back(v);
+    }
+
+    void Push(size_t in, WeightType weight, PrecursorType pre = VertexObj::NIL, WeightType path = VertexObj::NIL)
+    {
+        _vertexObjs.push_back(VertexType(in, weight, pre, path));
+    }
+
+    bool Empty()
+    {
+        return _vertexObjs.empty();
+    }
+
+    VertexType &operator[](size_t index)
+    {
+        return _vertexObjs[index];
+    }
+
+    VertexType Popup()
+    {
+        std::make_heap(_vertexObjs.begin(), _vertexObjs.end(), VertexType::VertexCmp);
+
+        VertexType rslt = _vertexObjs.front();
+        _vertexObjs.pop_back();
+
+        return rslt;
     }
 
     inline const PrecursorType &GetPrecursor(size_t index)
@@ -131,6 +170,16 @@ public:
         _vertexObjs[index].weight = value;
     }
 
+    inline const size_t GetIndex(size_t index)
+    {
+        return _vertexObjs[index].index;
+    }
+
+    inline void SetIndex(size_t index, const size_t value)
+    {
+        _vertexObjs[index].index = value;
+    }
+
 private:
     std::vector<_Vertex> _vertexObjs;
 };
@@ -146,11 +195,11 @@ public:
         BOTTOM_RIGHT,
         ANCHOR_LENGTH
     };
-    typedef std::pair<size_t, size_t> AnchorType;
+    typedef size_t AnchorType;
 
-    inline void Insert(AnchorIndex index, size_t x, size_t y)
+    inline void Insert(AnchorIndex index, size_t x)
     {
-        _anchorObjs[index] = std::make_pair(x, y);
+        _anchorObjs[index] = x;
     }
     inline const AnchorType &GetAnchor(const AnchorIndex ind)
     {
@@ -165,84 +214,27 @@ template <class Type>
 class FloodProblem
 {
 public:
-    FloodProblem(Type &data) : _cells(data), _vertexObj(TwoDimensinalObj<Type>::XLEN * TwoDimensinalObj<Type>::YLEN) {}
-
-    void InitSource()
+    enum
     {
-        size_t anchorIndex = AnchorObj::TOP_LEFT;
-        size_t vertexIndex = 0;
+        XLEN = TwoDimenTypeTraits<Type>::XLEN,
+        YLEN = TwoDimenTypeTraits<Type>::YLEN,
+        ARRAY_LEN = TwoDimenTypeTraits<Type>::XLEN * TwoDimenTypeTraits<Type>::YLEN
+    };
+    typedef typename TwoDimenTypeTraits<Type>::DataContinerType ArrayType;
+    FloodProblem(ArrayType &data) : _cells(data), _vertexObj(ARRAY_LEN) {}
 
-        size_t max_left = 0;
-        size_t max_top = 0;
+    void InitSource();
 
-        const size_t xLen = _cells.XLEN;
-        const size_t yLen = _cells.YLEN;
+    void BuildEdges(size_t x, size_t y);
 
-        for (size_t i = 0; i < xLen; ++i)
-        {
-            for (size_t j = 0; j < yLen; ++j)
-            {
-                if (_cells.Cells()[i][j] == 0)
-                {
-                    if (anchorIndex == AnchorObj::TOP_LEFT)
-                    {
-                        max_left = i;
-                        max_top = j;
-
-                        ++anchorIndex;
-                    }
-                    else if (anchorIndex == AnchorObj::TOP_RIGHT)
-                    {
-                        if (max_top <= j)
-                        {
-                            _anchor.Insert(AnchorObj::TOP_LEFT, max_left, max_top);
-                            _anchor.Insert(AnchorObj::TOP_RIGHT, i, j);
-                        }
-                        else
-                        {
-                            _anchor.Insert(AnchorObj::TOP_LEFT, i, j);
-                            _anchor.Insert(AnchorObj::TOP_RIGHT, max_left, max_top);
-                        }
-                        ++anchorIndex;
-                    }
-                    else if (anchorIndex == AnchorObj::BOTTOM_LEFT)
-                    {
-                        max_left = i;
-                        max_top = j;
-
-                        ++anchorIndex;
-                    }
-                    else if (anchorIndex == AnchorObj::BOTTOM_RIGHT)
-                    {
-                        if (max_top <= j)
-                        {
-                            _anchor.Insert(AnchorObj::BOTTOM_LEFT, max_left, max_top);
-                            _anchor.Insert(AnchorObj::BOTTOM_RIGHT, i, j);
-                        }
-                        else
-                        {
-                            _anchor.Insert(AnchorObj::BOTTOM_LEFT, i, j);
-                            _anchor.Insert(AnchorObj::BOTTOM_RIGHT, max_left, max_top);
-                        }
-
-                        ++anchorIndex;
-                    }
-                    else
-                    {
-                        assert(0);
-                    }
-                }
-                
-                _vertexObj.SetWeight(vertexIndex, _cells.Cells()[i][j]);
-                ++ vertexIndex;
-            }
-        }
-    }
-
-    inline void Relax(size_t u, size_t v, size_t wight)
+    inline void Relax(VertexObj &vertexes, VertexObj::VertexType &u)
     {
+
         //if(GetVertexObj(v).dest > GetVertexObj(v) + )
+        //size_t index = u.index;
     }
+
+    void DoSort();
 
     inline const AnchorObj::AnchorType &GetAnchorObj(AnchorObj::AnchorIndex index)
     {
@@ -264,14 +256,226 @@ public:
         return _vertexObj.GetWeight(index);
     }
 
+    inline const size_t GetIndex(size_t index)
+    {
+        return _vertexObj.GetIndex(index);
+    }
+
 private:
-    TwoDimensinalObj<Type> _cells;
+    bool _DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVertex);
+    ArrayType &_cells;
     VertexObj _vertexObj;
     AnchorObj _anchor;
 };
 
 template <class Type>
-FloodProblem<Type> MakeFloodProblemInstance(Type &data)
+void FloodProblem<Type>::InitSource()
+{
+    size_t anchorIndex = AnchorObj::TOP_LEFT;
+    size_t vertexIndex = 0;
+    size_t vertexPre = 0;
+
+    size_t max_top = 0;
+
+    const size_t xLen = XLEN;
+    const size_t yLen = YLEN;
+
+    for (size_t i = 0; i < xLen; ++i)
+    {
+        for (size_t j = 0; j < yLen; ++j)
+        {
+            if (_cells[i][j] == 0)
+            {
+                if (anchorIndex == AnchorObj::TOP_LEFT)
+                {
+                    max_top = j;
+
+                    vertexPre = vertexIndex;
+
+                    ++anchorIndex;
+                }
+                else if (anchorIndex == AnchorObj::TOP_RIGHT)
+                {
+                    if (max_top <= j)
+                    {
+                        _anchor.Insert(AnchorObj::TOP_LEFT, vertexPre);
+                        _anchor.Insert(AnchorObj::TOP_RIGHT, vertexIndex);
+                    }
+                    else
+                    {
+                        _anchor.Insert(AnchorObj::TOP_LEFT, vertexIndex);
+                        _anchor.Insert(AnchorObj::TOP_RIGHT, vertexPre);
+                    }
+                    ++anchorIndex;
+                }
+                else if (anchorIndex == AnchorObj::BOTTOM_LEFT)
+                {
+                    max_top = j;
+
+                    vertexPre = vertexIndex;
+
+                    ++anchorIndex;
+                }
+                else if (anchorIndex == AnchorObj::BOTTOM_RIGHT)
+                {
+                    if (max_top <= j)
+                    {
+                        _anchor.Insert(AnchorObj::BOTTOM_LEFT, vertexPre);
+                        _anchor.Insert(AnchorObj::BOTTOM_RIGHT, vertexIndex);
+                    }
+                    else
+                    {
+                        _anchor.Insert(AnchorObj::BOTTOM_LEFT, vertexIndex);
+                        _anchor.Insert(AnchorObj::BOTTOM_RIGHT, vertexPre);
+                    }
+
+                    ++anchorIndex;
+                }
+                else
+                {
+                    assert(0);
+                }
+            }
+
+            _vertexObj.Push(vertexIndex, _cells[i][j]);
+            BuildEdges(i,j);
+            ++vertexIndex;
+        }
+    }
+}
+
+template <class Type>
+void FloodProblem<Type>::BuildEdges(size_t x, size_t y)
+{
+    switch (x)
+    {
+    case 0:
+        switch (y)
+        {
+        case 0:
+            _vertexObj[0].edges.push_back(1);
+            _vertexObj[0].edges.push_back(YLEN);
+            _vertexObj[0].edges.push_back(YLEN + 1);
+            break;
+        case YLEN - 1:
+            _vertexObj[YLEN - 1].edges.push_back(YLEN - 2);
+            _vertexObj[YLEN - 1].edges.push_back(2 * YLEN - 2);
+            _vertexObj[YLEN - 1].edges.push_back(2 * YLEN - 1);
+            break;
+        default:
+            _vertexObj[y].edges.push_back(y - 1);
+            _vertexObj[y].edges.push_back(y + 1);
+            _vertexObj[y].edges.push_back(y + YLEN - 1);
+            _vertexObj[y].edges.push_back(y + YLEN);
+            _vertexObj[y].edges.push_back(y + YLEN + 1);
+            break;
+        }
+        break;
+    case XLEN - 1:
+        switch (y)
+        {
+        case 0:
+            _vertexObj[(XLEN - 1) * YLEN].edges.push_back((XLEN - 2) * YLEN);
+            _vertexObj[(XLEN - 1) * YLEN].edges.push_back((XLEN - 2) * YLEN + 1);
+            _vertexObj[(XLEN - 1) * YLEN].edges.push_back((XLEN - 1) * YLEN + 1);
+
+            break;
+        case YLEN - 1:
+            _vertexObj[XLEN * YLEN - 1].edges.push_back((XLEN - 1) * YLEN - 1);
+            _vertexObj[XLEN * YLEN - 1].edges.push_back((XLEN - 1) * YLEN - 2);
+            _vertexObj[XLEN * YLEN - 1].edges.push_back(XLEN * YLEN - 2);
+            break;
+        default:
+            {
+                size_t bottom = (XLEN - 1) * YLEN + y;
+                _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y - 1);
+                _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y);
+                _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y + 1);
+                _vertexObj[bottom].edges.push_back((XLEN - 1) * YLEN + y - 1);
+                _vertexObj[bottom].edges.push_back((XLEN - 1) * YLEN + y + 1);
+            } 
+            break;
+        }
+        break;
+    default: // 0 <x < XLEN -1
+        switch (y)
+        {
+        case 0:
+            {
+                size_t left = x* YLEN;
+                _vertexObj[left].edges.push_back(left - YLEN);
+                _vertexObj[left].edges.push_back(left - YLEN + 1);
+                _vertexObj[left].edges.push_back(left + 1);
+                _vertexObj[left].edges.push_back(left + YLEN);
+                _vertexObj[left].edges.push_back(left + YLEN + 1);
+                break;
+            }
+            
+        case YLEN - 1:
+            {
+                size_t right = x* YLEN + YLEN - 1;
+                _vertexObj[right].edges.push_back(right - YLEN);
+                _vertexObj[right].edges.push_back(right - YLEN - 1);
+                _vertexObj[right].edges.push_back(right - 1);
+                _vertexObj[right].edges.push_back(right + YLEN);
+                _vertexObj[right].edges.push_back(right + YLEN - 1);
+                break;
+            }
+        default:
+            {
+                size_t middle = x* YLEN + y;
+                _vertexObj[middle].edges.push_back(middle - YLEN - 1);
+                _vertexObj[middle].edges.push_back(middle - YLEN);
+                _vertexObj[middle].edges.push_back(middle - YLEN + 1);
+                _vertexObj[middle].edges.push_back(middle - 1);
+                _vertexObj[middle].edges.push_back(middle + 1);
+                _vertexObj[middle].edges.push_back(middle + YLEN - 1);
+                _vertexObj[middle].edges.push_back(middle + YLEN);
+                _vertexObj[middle].edges.push_back(middle + YLEN + 1);
+            }
+            break;
+        }
+        break;
+    }
+}
+template <class Type>
+bool FloodProblem<Type>::_DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVertex)
+{
+
+    VertexObj vertex = _vertexObj;
+
+    size_t loopTime = ARRAY_LEN - 1;
+
+    VertexObj::VertexType u;
+
+    assert(VertexObj::NIL == vertex.GetPathValue(_anchor.GetAnchor(index)));
+    vertex.SetPathValue(_anchor.GetAnchor(index), 0);
+
+    while (vertex.Empty())
+    {
+        u = vertex.Popup();
+        leftVertex.Push(u);
+
+        Relax(vertex, u);
+
+        if (--loopTime)
+        {
+            break;
+        }
+    }
+
+    return false;
+}
+
+template <class Type>
+void FloodProblem<Type>::DoSort()
+{
+    VertexObj leftVertex(ARRAY_LEN);
+    _DoSort(AnchorObj::TOP_LEFT, leftVertex);
+}
+
+template <class Type>
+inline FloodProblem<Type> MakeFloodProblemInstance(Type &data)
 {
     return FloodProblem<Type>(data);
 }

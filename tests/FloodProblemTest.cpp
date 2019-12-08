@@ -41,7 +41,7 @@
 #include "RandomGenerator.h"
 #include "FloodProblem.h"
 
-TEST(FloodProblemTest, TwoDimensinalObjArray)
+TEST(FloodProblemTest, TwoDimenTypeTraitsArray)
 {
     int matrix[4][4];
 
@@ -53,7 +53,7 @@ TEST(FloodProblemTest, TwoDimensinalObjArray)
         }
     }
 
-    auto obj = MakeTwoDimensinalObj(matrix);
+    auto obj = MakeTwoDimenTypeTraits(matrix);
     EXPECT_EQ(obj.GetValue(0, 3), 3);
     EXPECT_EQ(obj.GetValue(1, 3), 3);
 
@@ -66,40 +66,36 @@ TEST(FloodProblemTest, TwoDimensinalObjArray)
 
 TEST(FloodProblemTest, Init)
 {
-    int matrix[3][3];
-
     int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
-
-    int index = 0;
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            matrix[i][j] = data[index];
-            ++index;
-        }
-    }
+    int (&matrix)[3][3] = *reinterpret_cast<int (*)[3][3]>(&data);
 
     auto flood = MakeFloodProblemInstance(matrix);
     flood.InitSource();
     auto obj = flood.GetAnchorObj(AnchorObj::TOP_LEFT);
-    EXPECT_EQ(obj.first, 0);
-    EXPECT_EQ(obj.second, 0);
+    EXPECT_EQ(obj, 0);
 
     auto rightObj = flood.GetAnchorObj(AnchorObj::BOTTOM_RIGHT);
 
-    EXPECT_EQ(rightObj.first, 2);
-    EXPECT_EQ(rightObj.second, 2);
+    EXPECT_EQ(rightObj, 8);
 
     for (int i = 0; i < 9; i++)
     {
         EXPECT_EQ(flood.GetPrecursor(i), VertexObj::NIL);
         EXPECT_EQ(flood.GetPathValue(i), VertexObj::NIL);
         EXPECT_EQ(flood.GetWeight(i), data[i]);
+        EXPECT_EQ(flood.GetIndex(i), i);
     }
-
 }
 
 TEST(FloodProblemTest, Sort)
 {
+    int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
+    int (&matrix)[3][3] = *reinterpret_cast<int (*)[3][3]>(&data);
+
+    auto flood = MakeFloodProblemInstance(matrix);
+
+    flood.InitSource();
+
+    flood.DoSort();
+    
 }
