@@ -80,6 +80,7 @@ class VertexObj
 public:
     typedef size_t PrecursorType;
     typedef size_t WeightType;
+    typedef std::vector<size_t> EdgesType;
     enum
     {
         NIL = std::numeric_limits<size_t>::max()
@@ -89,23 +90,24 @@ public:
     {
         _Vertex() : index(NIL), weight(NIL), pre(NIL), path(NIL) {}
 
-        _Vertex(size_t in, WeightType w, PrecursorType pre, WeightType path) : index(in), weight(w), pre(NIL), path(NIL) {}
+        _Vertex(size_t in, WeightType w, PrecursorType p, WeightType pa) : index(in), weight(w), pre(p), path(pa) {}
 
-        static bool VertexCmp(const _Vertex &rh, const _Vertex &lh)
+        static bool VertexCmp(_Vertex &rh, _Vertex &lh)
         {
             return rh.path > lh.path;
+            //return rh.path < lh.path;
         }
 
         size_t index;
         WeightType weight;
         PrecursorType pre;
         WeightType path;
-        std::vector<size_t> edges;
+        EdgesType edges;
     };
 
     typedef _Vertex VertexType;
 
-    inline VertexObj(size_t len)
+    inline VertexObj(size_t len) : _arrayLen(len)
     {
         _vertexObjs.reserve(len);
     }
@@ -125,6 +127,11 @@ public:
         return _vertexObjs.empty();
     }
 
+    size_t Size()
+    {
+        return _vertexObjs.size();
+    }
+
     VertexType &operator[](size_t index)
     {
         return _vertexObjs[index];
@@ -132,9 +139,14 @@ public:
 
     VertexType Popup()
     {
-        std::make_heap(_vertexObjs.begin(), _vertexObjs.end(), VertexType::VertexCmp);
+       // if (_arrayLen == _vertexObjs.size())
+            std::sort(_vertexObjs.begin(), _vertexObjs.end(), VertexType::VertexCmp);
+        //else
+        {
+         //   std::make_heap(_vertexObjs.begin(), _vertexObjs.end(), VertexType::VertexCmp);
+        }
 
-        VertexType rslt = _vertexObjs.front();
+        VertexType rslt = _vertexObjs.back();
         _vertexObjs.pop_back();
 
         return rslt;
@@ -182,6 +194,7 @@ public:
 
 private:
     std::vector<_Vertex> _vertexObjs;
+    size_t _arrayLen;
 };
 
 class AnchorObj
@@ -229,9 +242,26 @@ public:
 
     inline void Relax(VertexObj &vertexes, VertexObj::VertexType &u)
     {
+        VertexObj::EdgesType &edge = u.edges;
 
-        //if(GetVertexObj(v).dest > GetVertexObj(v) + )
-        //size_t index = u.index;
+        for (VertexObj::EdgesType::iterator it = edge.begin(); it != edge.end(); ++it)
+        {
+            size_t len = vertexes.Size();
+
+            for (size_t t = 0; t < len; ++t)
+            {
+                if (vertexes[t].index == *it)
+                {
+                    VertexObj::VertexType &v = vertexes[t];
+                    if (v.path > u.path + v.weight)
+                    {
+                        v.path = u.path + v.weight;
+                        v.pre = u.index;
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     void DoSort();
@@ -338,7 +368,7 @@ void FloodProblem<Type>::InitSource()
             }
 
             _vertexObj.Push(vertexIndex, _cells[i][j]);
-            BuildEdges(i,j);
+            BuildEdges(i, j);
             ++vertexIndex;
         }
     }
@@ -386,54 +416,54 @@ void FloodProblem<Type>::BuildEdges(size_t x, size_t y)
             _vertexObj[XLEN * YLEN - 1].edges.push_back(XLEN * YLEN - 2);
             break;
         default:
-            {
-                size_t bottom = (XLEN - 1) * YLEN + y;
-                _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y - 1);
-                _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y);
-                _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y + 1);
-                _vertexObj[bottom].edges.push_back((XLEN - 1) * YLEN + y - 1);
-                _vertexObj[bottom].edges.push_back((XLEN - 1) * YLEN + y + 1);
-            } 
-            break;
+        {
+            size_t bottom = (XLEN - 1) * YLEN + y;
+            _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y - 1);
+            _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y);
+            _vertexObj[bottom].edges.push_back((XLEN - 2) * YLEN + y + 1);
+            _vertexObj[bottom].edges.push_back((XLEN - 1) * YLEN + y - 1);
+            _vertexObj[bottom].edges.push_back((XLEN - 1) * YLEN + y + 1);
+        }
+        break;
         }
         break;
     default: // 0 <x < XLEN -1
         switch (y)
         {
         case 0:
-            {
-                size_t left = x* YLEN;
-                _vertexObj[left].edges.push_back(left - YLEN);
-                _vertexObj[left].edges.push_back(left - YLEN + 1);
-                _vertexObj[left].edges.push_back(left + 1);
-                _vertexObj[left].edges.push_back(left + YLEN);
-                _vertexObj[left].edges.push_back(left + YLEN + 1);
-                break;
-            }
-            
-        case YLEN - 1:
-            {
-                size_t right = x* YLEN + YLEN - 1;
-                _vertexObj[right].edges.push_back(right - YLEN);
-                _vertexObj[right].edges.push_back(right - YLEN - 1);
-                _vertexObj[right].edges.push_back(right - 1);
-                _vertexObj[right].edges.push_back(right + YLEN);
-                _vertexObj[right].edges.push_back(right + YLEN - 1);
-                break;
-            }
-        default:
-            {
-                size_t middle = x* YLEN + y;
-                _vertexObj[middle].edges.push_back(middle - YLEN - 1);
-                _vertexObj[middle].edges.push_back(middle - YLEN);
-                _vertexObj[middle].edges.push_back(middle - YLEN + 1);
-                _vertexObj[middle].edges.push_back(middle - 1);
-                _vertexObj[middle].edges.push_back(middle + 1);
-                _vertexObj[middle].edges.push_back(middle + YLEN - 1);
-                _vertexObj[middle].edges.push_back(middle + YLEN);
-                _vertexObj[middle].edges.push_back(middle + YLEN + 1);
-            }
+        {
+            size_t left = x * YLEN;
+            _vertexObj[left].edges.push_back(left - YLEN);
+            _vertexObj[left].edges.push_back(left - YLEN + 1);
+            _vertexObj[left].edges.push_back(left + 1);
+            _vertexObj[left].edges.push_back(left + YLEN);
+            _vertexObj[left].edges.push_back(left + YLEN + 1);
             break;
+        }
+
+        case YLEN - 1:
+        {
+            size_t right = x * YLEN + YLEN - 1;
+            _vertexObj[right].edges.push_back(right - YLEN);
+            _vertexObj[right].edges.push_back(right - YLEN - 1);
+            _vertexObj[right].edges.push_back(right - 1);
+            _vertexObj[right].edges.push_back(right + YLEN);
+            _vertexObj[right].edges.push_back(right + YLEN - 1);
+            break;
+        }
+        default:
+        {
+            size_t middle = x * YLEN + y;
+            _vertexObj[middle].edges.push_back(middle - YLEN - 1);
+            _vertexObj[middle].edges.push_back(middle - YLEN);
+            _vertexObj[middle].edges.push_back(middle - YLEN + 1);
+            _vertexObj[middle].edges.push_back(middle - 1);
+            _vertexObj[middle].edges.push_back(middle + 1);
+            _vertexObj[middle].edges.push_back(middle + YLEN - 1);
+            _vertexObj[middle].edges.push_back(middle + YLEN);
+            _vertexObj[middle].edges.push_back(middle + YLEN + 1);
+        }
+        break;
         }
         break;
     }
@@ -443,25 +473,17 @@ bool FloodProblem<Type>::_DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVe
 {
 
     VertexObj vertex = _vertexObj;
-
-    size_t loopTime = ARRAY_LEN - 1;
-
     VertexObj::VertexType u;
 
     assert(VertexObj::NIL == vertex.GetPathValue(_anchor.GetAnchor(index)));
     vertex.SetPathValue(_anchor.GetAnchor(index), 0);
 
-    while (vertex.Empty())
+    while (!vertex.Empty())
     {
         u = vertex.Popup();
         leftVertex.Push(u);
 
         Relax(vertex, u);
-
-        if (--loopTime)
-        {
-            break;
-        }
     }
 
     return false;
