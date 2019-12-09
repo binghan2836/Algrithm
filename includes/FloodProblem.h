@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Saturday December 7th 2019 10:51:58 am
+ * Last Modified: Monday December 9th 2019 9:42:49 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <utility>
 #include <limits>
+#include <queue>
 
 template <class Type>
 class TwoDimenTypeTraits;
@@ -81,6 +82,7 @@ public:
     typedef size_t PrecursorType;
     typedef size_t WeightType;
     typedef std::vector<size_t> EdgesType;
+
     enum
     {
         NIL = std::numeric_limits<size_t>::max()
@@ -88,14 +90,18 @@ public:
 
     struct _Vertex
     {
-        _Vertex() : index(NIL), weight(NIL), pre(NIL), path(NIL) {}
+        _Vertex() : index(NIL), weight(NIL), pre(NIL), path(NIL) ,visted(0){}
 
-        _Vertex(size_t in, WeightType w, PrecursorType p, WeightType pa) : index(in), weight(w), pre(p), path(pa) {}
+        _Vertex(size_t in, WeightType w, PrecursorType p, WeightType pa,size_t v) : index(in), weight(w), pre(p), path(pa),visted(v) {}
+
+        bool operator()(const _Vertex &lhs, const _Vertex &rhs) const
+        {
+            return lhs.path > rhs.path;
+        }
 
         static bool VertexCmp(_Vertex &rh, _Vertex &lh)
         {
             return rh.path > lh.path;
-            //return rh.path < lh.path;
         }
 
         size_t index;
@@ -103,52 +109,65 @@ public:
         PrecursorType pre;
         WeightType path;
         EdgesType edges;
+        size_t visted;
     };
 
     typedef _Vertex VertexType;
+    typedef std::vector<VertexType> VertexObjType;
+    typedef std::map<size_t, VertexType &> VertexObjMapType;
+    typedef std::priority_queue<VertexType, std::vector<VertexType>, VertexType> QueueType;
+    
 
-    inline VertexObj(size_t len) : _arrayLen(len)
+    inline VertexObj(size_t len)
     {
         _vertexObjs.reserve(len);
     }
 
-    void Push(VertexType v)
+    void Push(const VertexType &v)
     {
         _vertexObjs.push_back(v);
+        //_vertexMap.insert(std::make_pair(v.index, std::ref(_vertexObjs[v.index])));
     }
 
     void Push(size_t in, WeightType weight, PrecursorType pre = VertexObj::NIL, WeightType path = VertexObj::NIL)
     {
-        _vertexObjs.push_back(VertexType(in, weight, pre, path));
+        _vertexObjs.push_back(VertexType(in, weight, pre, path,false));
+        //_vertexMap.insert(std::make_pair(in, std::ref(_vertexObjs[in])));
     }
 
-    bool Empty()
+    inline bool Empty() const
     {
         return _vertexObjs.empty();
     }
 
-    size_t Size()
+    inline size_t Size() const
     {
         return _vertexObjs.size();
     }
 
-    VertexType &operator[](size_t index)
+    inline VertexType &operator[](size_t index)
     {
+
         return _vertexObjs[index];
     }
 
-    VertexType Popup()
+    inline const VertexType &operator[](size_t index) const
     {
-       // if (_arrayLen == _vertexObjs.size())
-            std::sort(_vertexObjs.begin(), _vertexObjs.end(), VertexType::VertexCmp);
-        //else
+        return static_cast<const VertexType &>(const_cast<VertexObj *>(this)->operator[](index));
+    }
+
+    VertexType& Popup()
+    {
+        QueueType queue;
+        for(auto i = _vertexObjs.begin(); i != _vertexObjs.end(); ++i)
         {
-         //   std::make_heap(_vertexObjs.begin(), _vertexObjs.end(), VertexType::VertexCmp);
+            if(i->visted == 0)
+                queue.push(*i);
         }
 
-        VertexType rslt = _vertexObjs.back();
-        _vertexObjs.pop_back();
-
+        auto &rslt = _vertexObjs[queue.top().index];
+        rslt.visted = true;
+        
         return rslt;
     }
 
@@ -193,8 +212,7 @@ public:
     }
 
 private:
-    std::vector<_Vertex> _vertexObjs;
-    size_t _arrayLen;
+    VertexObjType _vertexObjs;
 };
 
 class AnchorObj
@@ -208,6 +226,9 @@ public:
         BOTTOM_RIGHT,
         ANCHOR_LENGTH
     };
+
+    typedef typename VertexObj::EdgesType EdgesType;
+
     typedef size_t AnchorType;
 
     inline void Insert(AnchorIndex index, size_t x)
@@ -219,8 +240,39 @@ public:
         return _anchorObjs[ind];
     }
 
+    void SetEdages(const VertexObj &vertexs)
+    {
+        for (size_t index = 0; index < vertexs.Size(); ++index)
+        {
+            auto ver = vertexs[index];
+
+            if (ver.index == _anchorObjs[TOP_LEFT])
+            {
+                _anchorEdges[TOP_LEFT] = ver.edges;
+            }
+            else if (ver.index == _anchorObjs[TOP_RIGHT])
+            {
+                _anchorEdges[TOP_RIGHT] = ver.edges;
+            }
+            else if (ver.index == _anchorObjs[BOTTOM_LEFT])
+            {
+                _anchorEdges[BOTTOM_LEFT] = ver.edges;
+            }
+            else if (ver.index == _anchorObjs[BOTTOM_RIGHT])
+            {
+                _anchorEdges[BOTTOM_RIGHT] = ver.edges;
+            }
+        }
+    }
+
+    inline EdgesType &GetEdges(const AnchorIndex ind)
+    {
+        return _anchorEdges[ind];
+    }
+
 private:
     AnchorType _anchorObjs[ANCHOR_LENGTH];
+    EdgesType _anchorEdges[ANCHOR_LENGTH];
 };
 
 template <class Type>
@@ -234,35 +286,14 @@ public:
         ARRAY_LEN = TwoDimenTypeTraits<Type>::XLEN * TwoDimenTypeTraits<Type>::YLEN
     };
     typedef typename TwoDimenTypeTraits<Type>::DataContinerType ArrayType;
+    typedef typename VertexObj::VertexObjMapType VertexMapType;
     FloodProblem(ArrayType &data) : _cells(data), _vertexObj(ARRAY_LEN) {}
 
     void InitSource();
 
     void BuildEdges(size_t x, size_t y);
 
-    inline void Relax(VertexObj &vertexes, VertexObj::VertexType &u)
-    {
-        VertexObj::EdgesType &edge = u.edges;
-
-        for (VertexObj::EdgesType::iterator it = edge.begin(); it != edge.end(); ++it)
-        {
-            size_t len = vertexes.Size();
-
-            for (size_t t = 0; t < len; ++t)
-            {
-                if (vertexes[t].index == *it)
-                {
-                    VertexObj::VertexType &v = vertexes[t];
-                    if (v.path > u.path + v.weight)
-                    {
-                        v.path = u.path + v.weight;
-                        v.pre = u.index;
-                    }
-                    break;
-                }
-            }
-        }
-    }
+    void Relax(VertexObj &vertexes, VertexObj::VertexType &u);
 
     void DoSort();
 
@@ -295,6 +326,7 @@ private:
     bool _DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVertex);
     ArrayType &_cells;
     VertexObj _vertexObj;
+    VertexMapType vertexMap;
     AnchorObj _anchor;
 };
 
@@ -319,7 +351,6 @@ void FloodProblem<Type>::InitSource()
                 if (anchorIndex == AnchorObj::TOP_LEFT)
                 {
                     max_top = j;
-
                     vertexPre = vertexIndex;
 
                     ++anchorIndex;
@@ -341,7 +372,6 @@ void FloodProblem<Type>::InitSource()
                 else if (anchorIndex == AnchorObj::BOTTOM_LEFT)
                 {
                     max_top = j;
-
                     vertexPre = vertexIndex;
 
                     ++anchorIndex;
@@ -468,19 +498,37 @@ void FloodProblem<Type>::BuildEdges(size_t x, size_t y)
         break;
     }
 }
+
+template <class Type>
+void FloodProblem<Type>::Relax(VertexObj &vertexes, VertexObj::VertexType &u)
+{
+    VertexObj::EdgesType &edge = u.edges;
+
+    for (auto it = edge.begin(); it != edge.end(); ++it)
+    {
+        auto v = vertexes[*it];
+        assert(v.index == *it);
+
+        if (v.path > u.path + v.weight)
+        {
+            v.path = u.path + v.weight;
+            v.pre = u.index;
+        }
+    }
+}
+
 template <class Type>
 bool FloodProblem<Type>::_DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVertex)
 {
 
     VertexObj vertex = _vertexObj;
-    VertexObj::VertexType u;
 
     assert(VertexObj::NIL == vertex.GetPathValue(_anchor.GetAnchor(index)));
     vertex.SetPathValue(_anchor.GetAnchor(index), 0);
 
     while (!vertex.Empty())
     {
-        u = vertex.Popup();
+        auto u = vertex.Popup();
         leftVertex.Push(u);
 
         Relax(vertex, u);
@@ -492,8 +540,12 @@ bool FloodProblem<Type>::_DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVe
 template <class Type>
 void FloodProblem<Type>::DoSort()
 {
-    VertexObj leftVertex(ARRAY_LEN);
-    _DoSort(AnchorObj::TOP_LEFT, leftVertex);
+    VertexObj topVertex(ARRAY_LEN);
+    _DoSort(AnchorObj::TOP_LEFT, topVertex);
+
+    _anchor.SetEdages(topVertex);
+
+    VertexObj bottomVertex(ARRAY_LEN);
 }
 
 template <class Type>
