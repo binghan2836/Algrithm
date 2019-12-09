@@ -41,29 +41,6 @@
 #include "RandomGenerator.h"
 #include "FloodProblem.h"
 
-TEST(FloodProblemTest, TwoDimenTypeTraitsArray)
-{
-    int matrix[4][4];
-
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            matrix[i][j] = j;
-        }
-    }
-
-    auto obj = MakeTwoDimenTypeTraits(matrix);
-    EXPECT_EQ(obj.GetValue(0, 3), 3);
-    EXPECT_EQ(obj.GetValue(1, 3), 3);
-
-    obj.SetValue(0, 3, 10);
-    obj.Cells()[1][3] = 20;
-
-    EXPECT_EQ(obj.GetValue(0, 3), 10);
-    EXPECT_EQ(obj.GetValue(1, 3), 20);
-}
-
 TEST(FloodProblemTest, Init)
 {
     int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
@@ -87,14 +64,24 @@ TEST(FloodProblemTest, Init)
     }
 }
 
+void mm(size_t x,size_t y, int ** p)
+{
+    int (*matrix)[3] = new(p) int[3][3];
+
+    int (&myref)[3][3] = *reinterpret_cast<int (*)[3][3]>(matrix);
+    std::cout << myref[0][0];
+}
+
 TEST(FloodProblemTest, Sort)
 {
     int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
     int (&matrix)[3][3] = *reinterpret_cast<int (*)[3][3]>(&data);
 
+    mm(3,3,(int **)&data);
     auto flood = MakeFloodProblemInstance(matrix);
 
     flood.InitSource();
+
 
     flood.DoSort();
     

@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Sunday December 1st 2019 8:27:20 am
+ * Last Modified: Sunday December 1st 2019 8:25:10 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -33,5 +33,43 @@
  * Date          By    Comments
  * ----------    ---    ----------------------------------------------------------
  */
+#include "FloodProblem.h"
 
+VertexObj::VertexType& VertexObj::Popup()
+{
+    QueueType queue;
+    for(auto i = _vertexObjs.begin(); i != _vertexObjs.end(); ++i)
+    {
+        if(i->visted == 0)
+            queue.push(*i);
+    }
 
+    VertexType& rslt = _vertexObjs[queue.top().index];
+    rslt.visted = true;
+    --_vertexLen;
+    return rslt;
+}
+
+void AnchorObj::_SetEdges(const AnchorIndex index,const VertexObj &vertexs)
+{
+    AnchorType value = _anchorObjs[index];
+    EdgesType & edges= _anchorEdges[index];
+    while(1)
+    {
+        const VertexObj::VertexType &v = vertexs[value];
+
+        if(v.path == 0)
+        {
+            edges.push_back(v.index);
+            break;
+        }
+
+        assert(v.pre != VertexObj::NIL);
+        assert(v.path != VertexObj::NIL);
+
+        edges.push_back(v.index);
+
+        value = v.pre;
+
+    }
+}

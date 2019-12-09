@@ -4,7 +4,7 @@
 #Created Date: Wednesday November 27th 2019
 #Author: DaGai  <binghan2836@163.com>
 #-----
-#Last Modified: Wednesday November 27th 2019 1:54:36 pm
+#Last Modified: Thursday November 28th 2019 10:37:27 pm
 #Modified By:   the developer formerly known as DaGai
 #-----
 #MIT License
@@ -65,5 +65,5 @@ INCLUDE_DIRECTORIES(
 )
 
 ADD_SUBDIRECTORY(third_parts/googletest/)
-#ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(tests)

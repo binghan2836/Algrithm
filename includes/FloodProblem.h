@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Monday December 9th 2019 9:42:49 am
+ * Last Modified: Monday December 9th 2019 8:32:18 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -40,6 +40,8 @@
 #include <utility>
 #include <limits>
 #include <queue>
+#include <cassert>
+#include <map>
 
 template <class Type>
 class TwoDimenTypeTraits;
@@ -53,28 +55,13 @@ public:
         XLEN = xLen,
         YLEN = yLen
     };
+
     typedef Type DataContinerType[xLen][yLen];
-    typedef Type ItemType;
-    TwoDimenTypeTraits(DataContinerType &data) : _dataContiner(data)
-    {
-    }
-
-    inline const Type &GetValue(const size_t x, const size_t y) { return _dataContiner[x][y]; }
-    inline void SetValue(const size_t x, const size_t y, const Type &value) { _dataContiner[x][y] = value; }
-
-    inline DataContinerType &Cells() { return _dataContiner; }
-    inline const size_t GetXLen() { return xLen; }
-    inline const size_t GetYLen() { return yLen; }
+    TwoDimenTypeTraits(DataContinerType &data):_dataContiner(data){}
 
 private:
     DataContinerType &_dataContiner;
 };
-
-template <class Type>
-TwoDimenTypeTraits<Type> MakeTwoDimenTypeTraits(Type &data)
-{
-    return TwoDimenTypeTraits<Type>(data);
-}
 
 class VertexObj
 {
@@ -118,7 +105,7 @@ public:
     typedef std::priority_queue<VertexType, std::vector<VertexType>, VertexType> QueueType;
     
 
-    inline VertexObj(size_t len)
+    inline VertexObj(size_t len):_vertexLen(len)
     {
         _vertexObjs.reserve(len);
     }
@@ -126,28 +113,25 @@ public:
     void Push(const VertexType &v)
     {
         _vertexObjs.push_back(v);
-        //_vertexMap.insert(std::make_pair(v.index, std::ref(_vertexObjs[v.index])));
     }
 
     void Push(size_t in, WeightType weight, PrecursorType pre = VertexObj::NIL, WeightType path = VertexObj::NIL)
     {
         _vertexObjs.push_back(VertexType(in, weight, pre, path,false));
-        //_vertexMap.insert(std::make_pair(in, std::ref(_vertexObjs[in])));
     }
 
     inline bool Empty() const
     {
-        return _vertexObjs.empty();
+        return _vertexLen == 0;
     }
 
     inline size_t Size() const
     {
-        return _vertexObjs.size();
+        return _vertexLen;
     }
 
     inline VertexType &operator[](size_t index)
     {
-
         return _vertexObjs[index];
     }
 
@@ -156,20 +140,7 @@ public:
         return static_cast<const VertexType &>(const_cast<VertexObj *>(this)->operator[](index));
     }
 
-    VertexType& Popup()
-    {
-        QueueType queue;
-        for(auto i = _vertexObjs.begin(); i != _vertexObjs.end(); ++i)
-        {
-            if(i->visted == 0)
-                queue.push(*i);
-        }
-
-        auto &rslt = _vertexObjs[queue.top().index];
-        rslt.visted = true;
-        
-        return rslt;
-    }
+    VertexType& Popup();
 
     inline const PrecursorType &GetPrecursor(size_t index)
     {
@@ -213,6 +184,7 @@ public:
 
 private:
     VertexObjType _vertexObjs;
+    size_t _vertexLen;
 };
 
 class AnchorObj
@@ -240,29 +212,10 @@ public:
         return _anchorObjs[ind];
     }
 
-    void SetEdages(const VertexObj &vertexs)
+    inline void SetEdages(const VertexObj &vertexs)
     {
-        for (size_t index = 0; index < vertexs.Size(); ++index)
-        {
-            auto ver = vertexs[index];
-
-            if (ver.index == _anchorObjs[TOP_LEFT])
-            {
-                _anchorEdges[TOP_LEFT] = ver.edges;
-            }
-            else if (ver.index == _anchorObjs[TOP_RIGHT])
-            {
-                _anchorEdges[TOP_RIGHT] = ver.edges;
-            }
-            else if (ver.index == _anchorObjs[BOTTOM_LEFT])
-            {
-                _anchorEdges[BOTTOM_LEFT] = ver.edges;
-            }
-            else if (ver.index == _anchorObjs[BOTTOM_RIGHT])
-            {
-                _anchorEdges[BOTTOM_RIGHT] = ver.edges;
-            }
-        }
+        _SetEdges(TOP_RIGHT,vertexs);
+        _SetEdges(BOTTOM_LEFT,vertexs);
     }
 
     inline EdgesType &GetEdges(const AnchorIndex ind)
@@ -271,6 +224,8 @@ public:
     }
 
 private:
+    void _SetEdges(const AnchorIndex index,const VertexObj &vertexs);
+    
     AnchorType _anchorObjs[ANCHOR_LENGTH];
     EdgesType _anchorEdges[ANCHOR_LENGTH];
 };
@@ -285,9 +240,12 @@ public:
         YLEN = TwoDimenTypeTraits<Type>::YLEN,
         ARRAY_LEN = TwoDimenTypeTraits<Type>::XLEN * TwoDimenTypeTraits<Type>::YLEN
     };
-    typedef typename TwoDimenTypeTraits<Type>::DataContinerType ArrayType;
-    typedef typename VertexObj::VertexObjMapType VertexMapType;
-    FloodProblem(ArrayType &data) : _cells(data), _vertexObj(ARRAY_LEN) {}
+    typedef typename TwoDimenTypeTraits<Type>::DataContinerType ArrayObj;
+
+    template<class AarryType>
+    FloodProblem(AarryType &data):_cells(data), _vertexObj(TwoDimenTypeTraits<Type>::XLEN * TwoDimenTypeTraits<Type>::YLEN) 
+    {
+    }
 
     void InitSource();
 
@@ -324,10 +282,11 @@ public:
 
 private:
     bool _DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVertex);
-    ArrayType &_cells;
+    ArrayObj &_cells;
     VertexObj _vertexObj;
-    VertexMapType vertexMap;
     AnchorObj _anchor;
+    const int x;
+    const int y;
 };
 
 template <class Type>
@@ -506,7 +465,7 @@ void FloodProblem<Type>::Relax(VertexObj &vertexes, VertexObj::VertexType &u)
 
     for (auto it = edge.begin(); it != edge.end(); ++it)
     {
-        auto v = vertexes[*it];
+        VertexObj::VertexType &v = vertexes[*it];
         assert(v.index == *it);
 
         if (v.path > u.path + v.weight)
@@ -518,34 +477,32 @@ void FloodProblem<Type>::Relax(VertexObj &vertexes, VertexObj::VertexType &u)
 }
 
 template <class Type>
-bool FloodProblem<Type>::_DoSort(AnchorObj::AnchorIndex index, VertexObj &leftVertex)
+bool FloodProblem<Type>::_DoSort(AnchorObj::AnchorIndex index, VertexObj &vertex)
 {
-
-    VertexObj vertex = _vertexObj;
-
     assert(VertexObj::NIL == vertex.GetPathValue(_anchor.GetAnchor(index)));
     vertex.SetPathValue(_anchor.GetAnchor(index), 0);
 
     while (!vertex.Empty())
     {
-        auto u = vertex.Popup();
-        leftVertex.Push(u);
+        VertexObj::VertexType &u = vertex.Popup();
 
         Relax(vertex, u);
     }
 
-    return false;
+    return true;
 }
 
 template <class Type>
 void FloodProblem<Type>::DoSort()
 {
-    VertexObj topVertex(ARRAY_LEN);
+    VertexObj topVertex = _vertexObj;
     _DoSort(AnchorObj::TOP_LEFT, topVertex);
 
     _anchor.SetEdages(topVertex);
 
-    VertexObj bottomVertex(ARRAY_LEN);
+    //VertexObj bottomVertex = _vertexObj;
+    _DoSort(AnchorObj::BOTTOM_RIGHT, _vertexObj);
+    _anchor.SetEdages(topVertex);
 }
 
 template <class Type>
