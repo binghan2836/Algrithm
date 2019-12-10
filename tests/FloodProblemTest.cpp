@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Sunday December 1st 2019 8:27:40 am
+ * Last Modified: Tuesday December 10th 2019 9:26:30 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -41,13 +41,13 @@
 #include "RandomGenerator.h"
 #include "FloodProblem.h"
 
-TEST(FloodProblemTest, Init)
+/*TEST(FloodProblemTest, Init)
 {
     int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
     int (&matrix)[3][3] = *reinterpret_cast<int (*)[3][3]>(&data);
 
     auto flood = MakeFloodProblemInstance(matrix);
-    flood.InitSource();
+
     auto obj = flood.GetAnchorObj(AnchorObj::TOP_LEFT);
     EXPECT_EQ(obj, 0);
 
@@ -62,27 +62,31 @@ TEST(FloodProblemTest, Init)
         EXPECT_EQ(flood.GetWeight(i), data[i]);
         EXPECT_EQ(flood.GetIndex(i), i);
     }
+}*/
+
+TEST(FloodProblemTest, SMallCase1)
+{
+    size_t data[] = {9,0,3,10,3,4,4,0,7};
+    size_t (&matrix)[3][3] = *reinterpret_cast<size_t (*)[3][3]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),3);
 }
 
-void mm(size_t x,size_t y, int ** p)
+
+TEST(FloodProblemTest, SMallCase2)
 {
-    int (*matrix)[3] = new(p) int[3][3];
-
-    int (&myref)[3][3] = *reinterpret_cast<int (*)[3][3]>(matrix);
-    std::cout << myref[0][0];
-}
-
-TEST(FloodProblemTest, Sort)
-{
-    int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
-    int (&matrix)[3][3] = *reinterpret_cast<int (*)[3][3]>(&data);
-
-    mm(3,3,(int **)&data);
-    auto flood = MakeFloodProblemInstance(matrix);
-
-    flood.InitSource();
-
-
-    flood.DoSort();
+    size_t data[] = {0,6,10,9,1,9,0,6,8,0,2,3,1,4,7,0,6,0,3,4};
     
+    size_t (&matrix)[5][4] = *reinterpret_cast<size_t (*)[5][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),4);
+}
+
+TEST(FloodProblemTest, SMallCase3)
+{
+    size_t data[] = {3,9,5,10,10,0,7,0,4,4,10,8,0,7,0,8};
+
+    size_t (&matrix)[4][4] = *reinterpret_cast<size_t (*)[4][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),12);/////////////////////////////!
 }

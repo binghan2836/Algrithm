@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Sunday December 1st 2019 8:25:10 am
+ * Last Modified: Tuesday December 10th 2019 9:26:30 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -50,26 +50,76 @@ VertexObj::VertexType& VertexObj::Popup()
     return rslt;
 }
 
-void AnchorObj::_SetEdges(const AnchorIndex index,const VertexObj &vertexs)
+void AnchorObj::_SetEdges(const size_t index,const VertexObj &vertexs, VertexSet& sets,size_t source)
 {
-    AnchorType value = _anchorObjs[index];
-    EdgesType & edges= _anchorEdges[index];
+    AnchorType value =  index;
+
     while(1)
     {
         const VertexObj::VertexType &v = vertexs[value];
+        VertexObj::PrecursorType pre = v.pre;
 
-        if(v.path == 0)
+        if(pre == source || pre == VertexObj::NIL)//v.path == 0 ||
         {
-            edges.push_back(v.index);
-            break;
+            return;
         }
 
-        assert(v.pre != VertexObj::NIL);
         assert(v.path != VertexObj::NIL);
+        
+        sets.insert(pre);
 
-        edges.push_back(v.index);
+        value = pre;
 
-        value = v.pre;
-
+        if(value == pre)
+        {
+            return;
+        }
     }
 }
+
+void FloodProblem::Relax(VertexObj &vertexes, VertexObj::VertexType &u)
+{
+    VertexObj::EdgesType &edge = u.edges;
+
+    for (auto it = edge.begin(); it != edge.end(); ++it)
+    {
+        VertexObj::VertexType &v = vertexes[*it];
+        assert(v.index == *it);
+
+        size_t rslt = 0;
+
+        if(u.weight == 0)
+        {
+            rslt = v.weight;
+        }
+        else
+        {
+            rslt = u.path + v.weight;
+        }
+        
+        if (v.path > rslt)
+        {
+            v.path = rslt;
+            v.pre = u.index;
+        }
+    }
+}
+
+bool FloodProblem::_DoSort(size_t index, VertexObj &vertex, AnchorObj &anchor, AnchorObj::VertexSet& sets)
+{
+    size_t source = anchor.GetAnchor(index);
+    assert(VertexObj::NIL == vertex[source].path);
+    vertex[source].path = 0;
+
+    while (!vertex.Empty())
+    {
+        VertexObj::VertexType &u = vertex.Popup();
+
+        Relax(vertex, u);
+    }
+
+    anchor.SetEdages(vertex,sets,source);
+
+    return true;
+}
+
