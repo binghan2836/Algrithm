@@ -69,11 +69,6 @@ void AnchorObj::_SetEdges(const size_t index,const VertexObj &vertexs, VertexSet
         sets.insert(pre);
 
         value = pre;
-
-        if(value == pre)
-        {
-            return;
-        }
     }
 }
 
@@ -84,18 +79,16 @@ void FloodProblem::Relax(VertexObj &vertexes, VertexObj::VertexType &u)
     for (auto it = edge.begin(); it != edge.end(); ++it)
     {
         VertexObj::VertexType &v = vertexes[*it];
-        assert(v.index == *it);
+
+        if(v.index != *it)
+        {
+            assert(0);
+        }
+        
 
         size_t rslt = 0;
 
-        if(u.weight == 0)
-        {
-            rslt = v.weight;
-        }
-        else
-        {
-            rslt = u.path + v.weight;
-        }
+        rslt = u.path + v.weight;
         
         if (v.path > rslt)
         {
@@ -123,3 +116,162 @@ bool FloodProblem::_DoSort(size_t index, VertexObj &vertex, AnchorObj &anchor, A
     return true;
 }
 
+void FloodProblem::BuildEdges(const size_t x, const size_t y, VertexObj& vertexObj)
+{   
+    if(x == 0)
+    {
+        if(y == 0)
+        {
+            vertexObj[0].edges.push_back(1);
+            vertexObj[0].edges.push_back(_yLen);
+            vertexObj[0].edges.push_back(_yLen + 1);
+        }
+        else if(y == _yLen - 1)
+        {
+            vertexObj[_yLen - 1].edges.push_back(_yLen - 2);
+            vertexObj[_yLen - 1].edges.push_back(2 * _yLen - 2);
+            vertexObj[_yLen - 1].edges.push_back(2 * _yLen - 1);
+        }
+        else
+        {
+            vertexObj[y].edges.push_back(y - 1);
+            vertexObj[y].edges.push_back(y + 1);
+            vertexObj[y].edges.push_back(y + _yLen - 1);
+            vertexObj[y].edges.push_back(y + _yLen);
+            vertexObj[y].edges.push_back(y + _yLen + 1);
+        }
+    }
+    else if(x == _xLen - 1)
+    {
+        if(y == 0)
+        {
+            size_t leftTop = (_xLen - 1) * _yLen;
+            vertexObj[leftTop].edges.push_back((_xLen - 2) * _yLen);
+            vertexObj[leftTop].edges.push_back((_xLen - 2) * _yLen + 1);
+            vertexObj[leftTop].edges.push_back((_xLen - 1) * _yLen + 1);
+        }
+        else if(y == _yLen - 1)
+        {
+            size_t rightTop = _xLen * _yLen - 1;
+            vertexObj[rightTop].edges.push_back((_xLen - 1) * _yLen - 1);
+            vertexObj[rightTop].edges.push_back((_xLen - 1) * _yLen - 2);
+            vertexObj[rightTop].edges.push_back(_xLen * _yLen - 2);
+        }
+        else
+        {
+            size_t bottom = (_xLen - 1) * _yLen + y;
+            vertexObj[bottom].edges.push_back((_xLen - 2) * _yLen + y - 1);
+            vertexObj[bottom].edges.push_back((_xLen - 2) * _yLen + y);
+            vertexObj[bottom].edges.push_back((_xLen - 2) * _yLen + y + 1);
+            vertexObj[bottom].edges.push_back((_xLen - 1) * _yLen + y - 1);
+            vertexObj[bottom].edges.push_back((_xLen - 1) * _yLen + y + 1);
+        }
+        
+    }
+    else
+    {
+        if(y == 0)
+        {
+            size_t left = x * _yLen;
+            vertexObj[left].edges.push_back(left - _yLen);
+            vertexObj[left].edges.push_back(left - _yLen + 1);
+            vertexObj[left].edges.push_back(left + 1);
+            vertexObj[left].edges.push_back(left + _yLen);
+            vertexObj[left].edges.push_back(left + _yLen + 1);
+        }
+        else if(y == _yLen - 1)
+        {
+            size_t right = x * _yLen + _yLen - 1;
+            vertexObj[right].edges.push_back(right - _yLen);
+            vertexObj[right].edges.push_back(right - _yLen - 1);
+            vertexObj[right].edges.push_back(right - 1);
+            vertexObj[right].edges.push_back(right + _yLen);
+            vertexObj[right].edges.push_back(right + _yLen - 1);
+        }
+        else
+        {
+            size_t middle = x * _yLen + y;
+            vertexObj[middle].edges.push_back(middle - _yLen - 1);
+            vertexObj[middle].edges.push_back(middle - _yLen);
+            vertexObj[middle].edges.push_back(middle - _yLen + 1);
+            vertexObj[middle].edges.push_back(middle - 1);
+            vertexObj[middle].edges.push_back(middle + 1);
+            vertexObj[middle].edges.push_back(middle + _yLen - 1);
+            vertexObj[middle].edges.push_back(middle + _yLen);
+            vertexObj[middle].edges.push_back(middle + _yLen + 1);
+        }
+    }
+}  
+
+void FloodProblem::InitSource(VertexObj& vertexObj, AnchorObj &anchor)
+{
+    size_t (&cell)[_xLen][_yLen] = *reinterpret_cast<size_t (*)[_xLen][_yLen]>(_p);
+
+    size_t vertexIndex = 0;
+
+    for (size_t i = 0; i < _xLen; ++i)
+    {
+        for (size_t j = 0; j < _yLen; ++j)
+        {
+            if (cell[i][j] == 0)
+            {
+                anchor.Insert(vertexIndex);
+            }
+
+            vertexObj.Push(vertexIndex, cell[i][j]);
+            BuildEdges(i, j, vertexObj);
+            ++vertexIndex;
+        }
+    }
+}
+
+
+size_t FloodProblem::DoSort()
+{
+    AnchorObj anchor(_arrayLen);
+    VertexObj vertexObj(_arrayLen);
+
+    AnchorObj::VertexSet setMax,setCurrent;
+    size_t rsltCurrent = 0, rsltMax = 0;
+
+    InitSource(vertexObj,anchor);
+
+    {
+        VertexObj verMaxObj = vertexObj;
+
+        _DoSort(0, verMaxObj, anchor, setMax);
+
+        for (auto vM : setMax)
+        {
+            rsltMax += verMaxObj[vM].weight;
+        }
+    }
+    
+    size_t setLen = anchor.GetAnchors().size();
+    for(size_t index = 1; index < setLen; ++index)
+    {
+        rsltCurrent = 0;
+        VertexObj verCurrentObj = vertexObj;
+        _DoSort(index, verCurrentObj,anchor,setCurrent);
+
+        for(auto vC:setCurrent)
+        {
+            rsltCurrent += verCurrentObj[vC].weight;
+        }
+
+        if(rsltMax > rsltCurrent)
+        {
+            rsltMax = rsltCurrent;
+            setMax.swap(setCurrent);
+        }
+        setCurrent.clear();
+    }
+    
+    for(auto i: setMax)
+    {
+        std::cout <<"<v(" << i << "):w(" << vertexObj[i].weight << ")>, ";
+    }
+    std::cout << "\nrslt: " << rsltMax << std::endl;
+
+    return rsltMax;
+}
