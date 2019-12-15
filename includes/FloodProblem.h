@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Tuesday December 10th 2019 9:26:30 am
+ * Last Modified: Saturday December 14th 2019 7:51:26 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -167,6 +167,7 @@ public:
     {
         return _anchorObjs;
     }
+    const size_t GetAnchorLength(){return _anchorObjs.size();}
 
 private:
     void _SetEdges(const size_t index,const VertexObj &vertexs, VertexSet& sets,size_t source);
@@ -178,21 +179,19 @@ private:
 class FloodProblem
 {
 public:
+    typedef std::vector<size_t> VertexRsultType;
     FloodProblem(size_t **data,const size_t x,const size_t y):_p(data),_xLen(x),_yLen(y),_arrayLen(x*y)
     {
-        
     }
-
-    void InitSource(VertexObj& vertexObj, AnchorObj &anchor);
-
-    void BuildEdges(const size_t x, const size_t y,VertexObj& vertexObj);
-
-    void Relax(VertexObj &vertexes, VertexObj::VertexType &u);
 
     size_t DoSort();
 
 private:
+    void _LayerTravsal(size_t start,size_t len,VertexObj& vertexMaps, AnchorObj::VertexSet& vertexsIn, AnchorObj::VertexSet& vertexsOut);
+    void BuildEdges(const size_t x, const size_t y,VertexObj& vertexObj);
     bool _DoSort(size_t index, VertexObj &leftVertex, AnchorObj &anchor, AnchorObj::VertexSet& sets);
+    void Relax(VertexObj &vertexes, VertexObj::VertexType &u);
+    void InitSource(VertexObj& vertexObj, AnchorObj &anchor);
     size_t **_p;
     const size_t _xLen;
     const size_t _yLen;

@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Tuesday December 10th 2019 9:26:30 am
+ * Last Modified: Tuesday December 10th 2019 9:17:59 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -88,5 +88,14 @@ TEST(FloodProblemTest, SMallCase3)
 
     size_t (&matrix)[4][4] = *reinterpret_cast<size_t (*)[4][4]>(&data);
 
-    EXPECT_EQ(SortFloodProblem(matrix),12);/////////////////////////////!
+    EXPECT_EQ(SortFloodProblem(matrix),9);
+}
+
+TEST(FloodProblemTest, SMallCase4)
+{
+    size_t data[] = {3,9,5,10,10,0,7,0,4,4,10,8,0,7,0,8};
+
+    size_t (&matrix)[4][4] = *reinterpret_cast<size_t (*)[4][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),9);
 }
