@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Saturday December 14th 2019 7:51:26 am
+ * Last Modified: Friday December 13th 2019 9:11:04 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -34,7 +34,6 @@
  * ----------    ---    ----------------------------------------------------------
  */
 #include "FloodProblem.h"
-#include <map>
 
 VertexObj::VertexType &VertexObj::Popup()
 {
@@ -256,26 +255,15 @@ size_t FloodProblem::DoSort()
     return rslt;
 }
 
-struct PathRecodeObjType
-{
-    PathRecodeObjType(size_t l) : level(l) {}
-    PathRecodeObjType() {}
-    std::set<size_t> preIndexSets; //in
-    std::set<size_t> nextIndexSets;
-    size_t level;
-};
-
 void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps, AnchorObj::VertexSet &vertexsIn, AnchorObj::VertexSet &vertexsOut)
 {
-    typedef PathRecodeObjType PathRecodeObj;
-    typedef std::map<size_t, PathRecodeObj> PathRecodeType;
     if (vertexsIn.size() < 3)
     {
         vertexsOut = vertexsIn;
         return;
     }
 
-    PathRecodeType pathRecord;
+    PathRecodType pathRecord;
 
     const size_t length = len;
 
@@ -283,7 +271,8 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
     std::queue<size_t> layerMark;
     layerMark.push(start);
 
-    pathRecord[start] = PathRecodeObj(1);
+    pathRecord[start] = PathRecodObj(1);
+    vertexMaps[start].path = 0;
 
     size_t anchorMarks = 1;
 
@@ -308,22 +297,27 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
                 {
                     if (pathRecord.find(it) != pathRecord.end())
                     {
-                        if (pathRecord[curr].level != pathRecord[it].level)
+                        if (vertexChild.pre != vertexParents.pre)
                         {
-                            pathRecord[it].preIndexSets.insert(curr);
-                            pathRecord[curr].nextIndexSets.insert(it);
+                            //test if current weight is 0, means this is a shorest way need add it
+                            if (vertexChild.weight == 0)
+                            {
+                                _trimDuplactedTernimals(curr,it,pathRecord,vertexMaps);
+                               
+                            }
+                            else
+                            {
+                                _trimDuplactedPointes(curr,it,pathRecord,vertexMaps);
+                            }
                         }
                     }
                     else
                     {
-                        pathRecord[it] = PathRecodeObj(pathRecord[curr].level + 1);
-
-                        pathRecord[it].preIndexSets.insert(curr);
-                        pathRecord[curr].nextIndexSets.insert(it);
+                        _InsertPathRecod(curr,it,pathRecord,vertexMaps);
 
                         layerMark.push(it);
 
-                        if (vertexMaps[it].weight == 0)
+                        if (vertexChild.weight == 0)
                         { //try to jump out if we get enough anchors
                             ++anchorMarks;
                             if (anchorMarks >= length)
@@ -336,16 +330,84 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
             }
         }
     }
+    _TrimDuplactedPath(pathRecord, vertexMaps, vertexsOut);
+}
 
-    for (PathRecodeType::iterator path = pathRecord.begin(); path != pathRecord.end(); ++path)
+void FloodProblem::_InsertPathRecod(size_t curr,size_t next, PathRecodType &pathRecord, VertexObj &vertexMaps)
+{
+    VertexObj::VertexType &vertexChild = vertexMaps[next];
+    vertexChild.path = vertexMaps[curr].path + vertexChild.weight;
+
+    vertexChild.pre = curr;
+    //vertexParents.pre = it;
+    //create new pointor
+    pathRecord[next] = PathRecodObj(pathRecord[curr].level + 1);
+
+    pathRecord[next].preIndexSets.insert(curr);
+    pathRecord[curr].nextIndexSets.insert(next);
+}
+
+void FloodProblem::_trimDuplactedTernimals(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps)
+{
+    //only compare the weight
+    size_t preIndex = *(pathRecord[next].preIndexSets.begin());
+    size_t preWeight = vertexMaps[preIndex].weight;
+    size_t currWeight = vertexMaps[curr].weight;
+
+    if (currWeight == preWeight)
+    {
+        pathRecord[next].preIndexSets.insert(curr);
+        pathRecord[curr].nextIndexSets.insert(next);
+    }
+    else if (currWeight < preWeight)
+    {
+        //update
+        pathRecord[preIndex].nextIndexSets.erase(next);
+        pathRecord[next].preIndexSets.erase(preIndex);
+
+        pathRecord[next].preIndexSets.insert(curr);
+        pathRecord[curr].nextIndexSets.insert(next);
+    }
+}
+
+void FloodProblem::_trimDuplactedPointes(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps)
+{
+    //get pre weight
+    size_t prePath = vertexMaps[*(pathRecord[next].preIndexSets.begin())].path;
+    size_t currPath = vertexMaps[curr].path;
+    if (currPath == prePath)
+    {
+        pathRecord[next].preIndexSets.insert(curr);
+        pathRecord[curr].nextIndexSets.insert(next);
+    }
+    else if (currPath < prePath)
+    {
+        //update
+        assert(0);
+    }
+}
+
+void FloodProblem::_TrimDuplactedPath(PathRecodType &pathRecord, VertexObj &vertexMaps, AnchorObj::VertexSet &vertexsOut)
+{
+    for (PathRecodType::iterator path = pathRecord.begin(); path != pathRecord.end(); ++path)
     {
         vertexsOut.insert(path->first);
+        if (path->second.nextIndexSets.size() == 0)
+        {
+            if (vertexMaps[path->first].weight != 0)
+            {
+                //need enhance
+                vertexsOut.erase(path->first);
+                continue;
+            }
+        }
         if (path->second.preIndexSets.size() > 1)
         {
             for (auto pre : path->second.preIndexSets)
             {
                 if (pathRecord[pre].nextIndexSets.size() < 2)
                 {
+                    //need enhance
                     vertexsOut.erase(pre);
                 }
             }

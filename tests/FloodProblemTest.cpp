@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Tuesday December 10th 2019 9:17:59 pm
+ * Last Modified: Friday December 13th 2019 9:11:04 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -93,9 +93,145 @@ TEST(FloodProblemTest, SMallCase3)
 
 TEST(FloodProblemTest, SMallCase4)
 {
-    size_t data[] = {3,9,5,10,10,0,7,0,4,4,10,8,0,7,0,8};
+    size_t data[] = {6,8,0,3,1,1,0,9};
+
+    size_t (&matrix)[4][2] = *reinterpret_cast<size_t (*)[4][2]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),1);
+}
+
+TEST(FloodProblemTest, SMallCase5)
+{
+    size_t data[] = {0,2,0,2,9,4,3,7,8,0,6,0,4,3,10,10};
 
     size_t (&matrix)[4][4] = *reinterpret_cast<size_t (*)[4][4]>(&data);
 
+    EXPECT_EQ(SortFloodProblem(matrix),5);
+}
+
+TEST(FloodProblemTest, SMallCase6)
+{
+    size_t data[] = {5,1,0,1,3,7,0,9,4,10};
+
+    size_t (&matrix)[5][2] = *reinterpret_cast<size_t (*)[5][2]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),3);
+}
+
+TEST(FloodProblemTest, SMallCase7)
+{
+    size_t data[] = {0,1,4,4,6,0};
+
+    size_t (&matrix)[3][2] = *reinterpret_cast<size_t (*)[3][2]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),4);
+}
+
+TEST(FloodProblemTest, SMallCase8)
+{
+    size_t data[] = {8,0,5,5,5,1,5,7,0,7,0,5,0,4,9,1,2,4,1,0,8,0,5,0,10};
+
+    size_t (&matrix)[5][5] = *reinterpret_cast<size_t (*)[5][5]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),4);
+}
+
+TEST(FloodProblemTest, SMallCase9)
+{
+    size_t data[] = {5,1,1,4,1,0,5,0,7,4,8,8};
+
+    size_t (&matrix)[3][4] = *reinterpret_cast<size_t (*)[3][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),1);
+}
+
+
+TEST(FloodProblemTest, SMallCase10)
+{
+    size_t data[] = {3,6,5,0,6,5,0,8,7,7};
+
+    size_t (&matrix)[2][5] = *reinterpret_cast<size_t (*)[2][5]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),5);
+}
+
+TEST(FloodProblemTest, SMallCase11)
+{
+    size_t data[] = {10,3,2,3,8,0,10,0,7,10,9,2};
+
+    size_t (&matrix)[3][4] = *reinterpret_cast<size_t (*)[3][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),2);
+}
+
+TEST(FloodProblemTest, SMallCase12)
+{
+    size_t data[] = {6,0,2,0,8,8,3,2};
+
+    size_t (&matrix)[2][4] = *reinterpret_cast<size_t (*)[2][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),2);
+}
+
+TEST(FloodProblemTest, SMallCase13)
+{
+    size_t data[] = {7,5,5,0,9,4,0,5,5,6,6,9,6,0,3,0,9,0,4,10};
+
+    size_t (&matrix)[4][5] = *reinterpret_cast<size_t (*)[4][5]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),11);
+}
+
+TEST(FloodProblemTest, SMallCase14)
+{
+    size_t data[] = {5,9,3,4,7,6,0,5,0,9,3,10,3,7,2,5,0,3,0,7};
+
+    size_t (&matrix)[4][5] = *reinterpret_cast<size_t (*)[4][5]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),6);
+}
+
+TEST(FloodProblemTest, SMallCase15)
+{
+    size_t data[] = {7,0,10,0,9,8,9,1};
+
+    size_t (&matrix)[2][4] = *reinterpret_cast<size_t (*)[2][4]>(&data);
+
     EXPECT_EQ(SortFloodProblem(matrix),9);
+}
+
+TEST(FloodProblemTest, SMallCase16)
+{
+    size_t data[] = {9,6,0,10,0,6,1,7};
+
+    size_t (&matrix)[2][4] = *reinterpret_cast<size_t (*)[2][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),6);
+}
+
+TEST(FloodProblemTest, SMallCase17)
+{
+    size_t data[] = {7,1,0,0,9,6};
+
+    size_t (&matrix)[2][3] = *reinterpret_cast<size_t (*)[2][3]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),1);
+}
+
+TEST(FloodProblemTest, SMallCase18)
+{
+    size_t data[] = {2,4,9,7,0,3,1,7,10,7,0,3};
+
+    size_t (&matrix)[4][3] = *reinterpret_cast<size_t (*)[4][3]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),1);
+}
+
+TEST(FloodProblemTest, SMallCase19)
+{
+    size_t data[] = {8,1,9,0,7,3,0,5,10,5,7,5,9,0,7};
+
+    size_t (&matrix)[3][5] = *reinterpret_cast<size_t (*)[3][5]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),5);
 }

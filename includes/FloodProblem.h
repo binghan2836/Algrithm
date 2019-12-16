@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Saturday December 14th 2019 7:51:26 am
+ * Last Modified: Friday December 13th 2019 9:11:04 pm
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -43,6 +43,7 @@
 #include <cassert>
 #include <set>
 #include <iostream>
+#include <map>
 template <class Type>
 class ArrayTraits;
 
@@ -176,6 +177,16 @@ private:
 };
 
 
+
+struct PathRecodObjType
+{
+    PathRecodObjType(size_t l) : level(l) {}
+    PathRecodObjType() {}
+    std::set<size_t> preIndexSets; //in
+    std::set<size_t> nextIndexSets;
+    size_t level;
+};
+
 class FloodProblem
 {
 public:
@@ -192,6 +203,16 @@ private:
     bool _DoSort(size_t index, VertexObj &leftVertex, AnchorObj &anchor, AnchorObj::VertexSet& sets);
     void Relax(VertexObj &vertexes, VertexObj::VertexType &u);
     void InitSource(VertexObj& vertexObj, AnchorObj &anchor);
+
+    //trim function
+    typedef PathRecodObjType PathRecodObj;
+    typedef std::map<size_t, PathRecodObj> PathRecodType;
+
+    void _InsertPathRecod(size_t curr,size_t next, PathRecodType &pathRecord, VertexObj &vertexMaps);
+    void _trimDuplactedPointes(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps);
+    void _trimDuplactedTernimals(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps);
+    void _TrimDuplactedPath(PathRecodType &pathRecord, VertexObj &vertexMaps, AnchorObj::VertexSet &vertexsOut);
+    
     size_t **_p;
     const size_t _xLen;
     const size_t _yLen;
