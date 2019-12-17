@@ -41,28 +41,67 @@
 #include "RandomGenerator.h"
 #include "FloodProblem.h"
 
-/*TEST(FloodProblemTest, Init)
-{
-    int data[] = {0, 8, 0, 7, 2, 6, 0, 5, 0};
-    int (&matrix)[3][3] = *reinterpret_cast<int (*)[3][3]>(&data);
+#include <fstream>
+#include <sstream>
+#include <string>
 
-    auto flood = MakeFloodProblemInstance(matrix);
+size_t MyArray[200*200];
 
-    auto obj = flood.GetAnchorObj(AnchorObj::TOP_LEFT);
-    EXPECT_EQ(obj, 0);
+typedef std::vector<std::vector<size_t> > ContainerType;
 
-    auto rightObj = flood.GetAnchorObj(AnchorObj::BOTTOM_RIGHT);
-
-    EXPECT_EQ(rightObj, 8);
-
-    for (int i = 0; i < 9; i++)
+class DataInput{
+public:
+    DataInput(std::string fileName):_name(fileName),_row(0),_col(0)
     {
-        EXPECT_EQ(flood.GetPrecursor(i), VertexObj::NIL);
-        EXPECT_EQ(flood.GetPathValue(i), VertexObj::NIL);
-        EXPECT_EQ(flood.GetWeight(i), data[i]);
-        EXPECT_EQ(flood.GetIndex(i), i);
+        memset(MyArray,0,sizeof(MyArray));
     }
-}*/
+    const size_t GetRow(){return _row;}
+    const size_t GetCol(){return _col;}
+    bool GetData(size_t *c);
+private:
+    std::string _name;
+    size_t _row;
+    size_t _col;
+};
+
+bool DataInput::GetData(size_t *c)
+{
+    std::fstream file(_name);
+
+    if(file.is_open() == false)
+    {
+        std::cout <<_name << " open error!\n";
+        return false;
+    }
+
+    std::string line;
+    size_t index = 0;
+
+    while(std::getline(file,line))
+    {   
+        ++ _row;
+        std::stringstream formtObj(line);
+ 
+        while(formtObj >> c[index])
+        {
+            //formtObj >> c[index];
+            ++ index;
+        }
+    }
+
+    _col = index/_row;
+
+    return true;
+}
+
+TEST(FloodProblemTest, SMallCase3)
+{
+    size_t data[] = {3,9,5,10,10,0,7,0,4,4,10,8,0,7,0,8};
+
+    size_t (&matrix)[4][4] = *reinterpret_cast<size_t (*)[4][4]>(&data);
+
+    EXPECT_EQ(SortFloodProblem(matrix),9);
+}
 
 TEST(FloodProblemTest, SMallCase1)
 {
@@ -80,15 +119,6 @@ TEST(FloodProblemTest, SMallCase2)
     size_t (&matrix)[5][4] = *reinterpret_cast<size_t (*)[5][4]>(&data);
 
     EXPECT_EQ(SortFloodProblem(matrix),4);
-}
-
-TEST(FloodProblemTest, SMallCase3)
-{
-    size_t data[] = {3,9,5,10,10,0,7,0,4,4,10,8,0,7,0,8};
-
-    size_t (&matrix)[4][4] = *reinterpret_cast<size_t (*)[4][4]>(&data);
-
-    EXPECT_EQ(SortFloodProblem(matrix),9);
 }
 
 TEST(FloodProblemTest, SMallCase4)
@@ -188,7 +218,7 @@ TEST(FloodProblemTest, SMallCase14)
 
     size_t (&matrix)[4][5] = *reinterpret_cast<size_t (*)[4][5]>(&data);
 
-    EXPECT_EQ(SortFloodProblem(matrix),6);
+    EXPECT_EQ(SortFloodProblem(matrix),3);
 }
 
 TEST(FloodProblemTest, SMallCase15)
@@ -234,4 +264,52 @@ TEST(FloodProblemTest, SMallCase19)
     size_t (&matrix)[3][5] = *reinterpret_cast<size_t (*)[3][5]>(&data);
 
     EXPECT_EQ(SortFloodProblem(matrix),5);
+}
+
+std::string path = "/home/dev/newFormatTestCase";
+TEST(FloodProblemTest,charactor0)
+{
+    DataInput input(path + "/small/charactor0.txt");
+
+    input.GetData(MyArray);
+
+    EXPECT_EQ(SortFloodProblem(reinterpret_cast<size_t **>(&MyArray),input.GetRow(),input.GetCol()),11);
+}
+
+TEST(FloodProblemTest,charactor1)
+{
+    DataInput input(path + "/small/charactor1.txt");
+
+    input.GetData(MyArray);
+
+    EXPECT_EQ(SortFloodProblem(reinterpret_cast<size_t **>(&MyArray),input.GetRow(),input.GetCol()),9);
+}
+
+
+TEST(FloodProblemTest,charactor2)
+{
+    DataInput input(path + "/small/charactor2.txt");
+
+    input.GetData(MyArray);
+
+    EXPECT_EQ(SortFloodProblem(reinterpret_cast<size_t **>(&MyArray),input.GetRow(),input.GetCol()),0);
+}
+
+TEST(FloodProblemTest,charactor3)
+{
+    DataInput input(path + "/small/charactor3.txt");
+
+    input.GetData(MyArray);
+
+    EXPECT_EQ(SortFloodProblem(reinterpret_cast<size_t **>(&MyArray),input.GetRow(),input.GetCol()),13);
+}
+
+
+TEST(FloodProblemTest,charactor4)
+{
+    DataInput input(path + "/small/charactor4.txt");
+
+    input.GetData(MyArray);
+
+    EXPECT_EQ(SortFloodProblem(reinterpret_cast<size_t **>(&MyArray),input.GetRow(),input.GetCol()),14);
 }

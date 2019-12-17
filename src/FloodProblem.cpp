@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Monday December 16th 2019 8:47:22 pm
+ * Last Modified: Tuesday December 17th 2019 9:27:50 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -237,8 +237,10 @@ size_t FloodProblem::DoSort()
     size_t setLen = anchor.GetAnchors().size();
     for (size_t index = 0; index < setLen; ++index)
     {
+        AnchorObj::VertexSet sets;
         VertexObj verCurrentObj = vertexObj;
-        _DoSort(index, verCurrentObj, anchor, currentSets);
+        _DoSort(index, verCurrentObj, anchor, sets);
+        currentSets.insert(sets.begin(),sets.end());
     }
 
     //layer vistor
@@ -264,7 +266,7 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
 
     PathRecodType pathRecord;
 
-    const size_t length = len;
+    //const size_t length = len;
 
     //trim duplcated path
     std::queue<size_t> layerMark;
@@ -273,9 +275,7 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
     pathRecord[start] = PathRecodObj(1);
     vertexMaps[start].path = 0;
 
-    size_t anchorMarks = 1;
-
-    while (layerMark.size() && (anchorMarks < length))
+    while (layerMark.size()) // && (anchorMarks < length)
     {
         size_t curr = layerMark.front();
         layerMark.pop();
@@ -312,15 +312,6 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
                         _InsertPathRecod(curr,it,pathRecord,vertexMaps);
 
                         layerMark.push(it);
-
-                        if (vertexChild.weight == 0)
-                        { //try to jump out if we get enough anchors
-                            ++anchorMarks;
-                            if (anchorMarks >= length)
-                            {
-                                break;
-                            }
-                        }
                     }
                 }
             }
@@ -334,7 +325,7 @@ void FloodProblem::_LayerTravsal(size_t start, size_t len, VertexObj &vertexMaps
     _TrimDuplactedPath(pathRecord, vertexMaps, vertexsOut);
 }
 
-void FloodProblem::_DoTrim(size_t curr, std::vector<size_t> nexts, PathRecodType &pathRecord, VertexObj &vertexMaps)
+void FloodProblem::_DoTrim(size_t curr, std::vector<size_t> &nexts, PathRecodType &pathRecord, VertexObj &vertexMaps)
 {
     for (auto next : nexts)
     {
@@ -366,7 +357,7 @@ void FloodProblem::_InsertPathRecod(size_t curr,size_t next, PathRecodType &path
 void FloodProblem::_trimDuplactedTernimals(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps)
 {
     //only compare the weight
-    size_t preIndex = *(pathRecord[next].preIndexSets.begin());
+    size_t preIndex = vertexMaps[next].pre;//*(pathRecord[next].preIndexSets.begin());
     size_t preWeight = vertexMaps[preIndex].weight;
     size_t currWeight = vertexMaps[curr].weight;
 
@@ -386,7 +377,17 @@ void FloodProblem::_trimDuplactedTernimals(size_t curr,size_t next,PathRecodType
     switch (rslt)
     {
     case 0:
-        assert(0);
+        if(currWeight < preWeight)
+        {
+            pathRecord[preIndex].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(preIndex);
+            vertexMaps[next].pre = curr;
+        }
+        else
+        {
+            assert(0);
+        }
+        break;
     case 3:
         if (currWeight == preWeight)
         {
@@ -397,9 +398,13 @@ void FloodProblem::_trimDuplactedTernimals(size_t curr,size_t next,PathRecodType
         else if (currWeight < preWeight)
         {
             //update
-            assert(0);
             pathRecord[preIndex].nextIndexSets.erase(next);
             pathRecord[next].preIndexSets.erase(preIndex);
+
+            if(pathRecord[next].preIndexSets.size() == 1)
+            {
+                vertexMaps[next].pre = curr;
+            }
         }
         else if(currWeight > preWeight)
         {
@@ -413,9 +418,19 @@ void FloodProblem::_trimDuplactedTernimals(size_t curr,size_t next,PathRecodType
         //update
         pathRecord[preIndex].nextIndexSets.erase(next);
         pathRecord[next].preIndexSets.erase(preIndex);
+        vertexMaps[next].pre = curr;
         break;
     case 1:
-        assert(0);
+        if(0 == vertexMaps[curr].weight)
+        {
+            pathRecord[preIndex].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(preIndex);
+            vertexMaps[next].pre = curr;
+        }
+        else
+        {
+            assert(0);
+        }
         break;
     default:
         assert(0);
@@ -426,7 +441,7 @@ void FloodProblem::_trimDuplactedTernimals(size_t curr,size_t next,PathRecodType
 void FloodProblem::_trimDuplactedPointes(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps)
 {
     //get pre weight
-    size_t preIndex = *(pathRecord[next].preIndexSets.begin());
+    size_t preIndex = vertexMaps[next].pre;
     size_t preWeight = vertexMaps[preIndex].path;
     size_t currWeight = vertexMaps[curr].path;
 
@@ -451,14 +466,56 @@ void FloodProblem::_trimDuplactedPointes(size_t curr,size_t next,PathRecodType &
             pathRecord[curr].nextIndexSets.erase(next);
             pathRecord[next].preIndexSets.erase(curr);
         }
-        if(currWeight == preWeight)
+        else if(currWeight == preWeight)
         {
             assert(0);
         }
-        if(currWeight < preWeight)
+        else if(currWeight < preWeight)
+        {
+            pathRecord[preIndex].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(preIndex);
+            vertexMaps[next].pre = curr;
+        }
+        break;
+    case 2:
+        if(preWeight < currWeight)
+        {
+            pathRecord[curr].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(curr);
+        }
+        else
         {
             assert(0);
         }
+        break;
+    case 1:
+        if(currWeight > preWeight)
+        {
+            pathRecord[curr].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(curr);
+        }
+        else
+        {
+            assert(0);
+        }
+        break;
+    case 0:
+        if(preWeight < currWeight)
+        {
+            pathRecord[curr].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(curr);
+        }
+        else if(preWeight > currWeight)
+        {
+            pathRecord[preIndex].nextIndexSets.erase(next);
+            pathRecord[next].preIndexSets.erase(preIndex);
+            vertexMaps[next].pre = curr;
+        }
+        else
+        {
+            std::cout << "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+        }
+        
         break;
     default:
         assert(0);

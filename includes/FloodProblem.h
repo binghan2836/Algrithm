@@ -4,7 +4,7 @@
  * Created Date: Sunday December 1st 2019
  * Author: DaGai  <binghan2836@163.com>
  * -----
- * Last Modified: Monday December 16th 2019 8:47:22 pm
+ * Last Modified: Tuesday December 17th 2019 9:27:50 am
  * Modified By:   the developer formerly known as DaGai
  * -----
  * MIT License
@@ -210,7 +210,7 @@ private:
 
     void _InsertPathRecod(size_t curr,size_t next, PathRecodType &pathRecord, VertexObj &vertexMaps);
     
-    void _DoTrim(size_t curr, std::vector<size_t> nexts, PathRecodType &pathRecord, VertexObj &vertexMaps);
+    void _DoTrim(size_t curr, std::vector<size_t> &nexts, PathRecodType &pathRecord, VertexObj &vertexMaps);
     void _trimDuplactedPointes(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps);
     void _trimDuplactedTernimals(size_t curr,size_t next,PathRecodType &pathRecord, VertexObj &vertexMaps);
     void _TrimDuplactedPath(PathRecodType &pathRecord, VertexObj &vertexMaps, AnchorObj::VertexSet &vertexsOut);
@@ -225,6 +225,12 @@ template <class Type>
 inline size_t SortFloodProblem(Type &data)
 {
     FloodProblem flood(reinterpret_cast<size_t **>(&data),ArrayTraits<Type>::XLEN,ArrayTraits<Type>::YLEN);
+    return flood.DoSort();
+}
+
+inline size_t SortFloodProblem(size_t ** data,size_t row, size_t col)
+{
+    FloodProblem flood(data,row,col);
     return flood.DoSort();
 }
 
